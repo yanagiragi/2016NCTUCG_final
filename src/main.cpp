@@ -238,9 +238,6 @@ void init(void) {
 
 	float Camera_Pos_[3] = { 0, 3, 48 };
 	cameraDistance = sqrtf(Camera_Pos_[0] * Camera_Pos_[0] + Camera_Pos_[1] * Camera_Pos_[1] + Camera_Pos_[2] * Camera_Pos_[2]);
-	cameraPitch = 89.9187;
-	cameraYaw = 449.655;
-
 }
 
 void setClampedTextureState() {
