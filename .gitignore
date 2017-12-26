@@ -152,7 +152,4 @@ $RECYCLE.BIN/
 # Mac crap
 .DS_Store
 
-LTC/LTC/Debug
-LTC/Debug
-*.exe
-*.VC.db
+.vs/*
