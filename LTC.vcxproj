@@ -118,6 +118,9 @@
   <ItemGroup>
     <ClInclude Include="..\shader_lib\shader.h" />
     <ClInclude Include="src\data.hpp" />
+    <ClInclude Include="src\ObjLoader.hpp" />
+    <ClInclude Include="src\Reader.hpp" />
+    <ClInclude Include="src\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ltc\ltc.fs" />

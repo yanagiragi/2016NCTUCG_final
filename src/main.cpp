@@ -15,6 +15,9 @@
 #include "../include/shader.h"
 #include "data.hpp"
 
+#include "Reader.hpp"
+#include "ObjLoader.hpp"
+
 #define ROT_STEP 0.01
 #define HEIGHT_WIDTH_STEP 0.5
 #define LIGHT_INTENSITY_STEP 0.5
@@ -33,10 +36,16 @@ GLuint rttFramebuffer, rttTexture, depthTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;
 GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer, lightRectBuffer;
-struct _parameters { int screenWidth; int screenHeight; }parameters;
+GLuint buffer, lightRectBuffer, teapotBuffer;
+struct _parameters 
+{
+	int screenWidth; 
+	int screenHeight; 
+}parameters;
+
 std::time_t parameters_time;
-GLuint location(const GLchar* u) { return glGetUniformLocation(currentProgram, u); }
+
+
 float eyez = 3.0;
 float roty = 0.23, rotz = 0.082;
 float height = 8.0, width = 8.0;
@@ -50,7 +59,14 @@ int frame, time_of_glut, timebase;
 double execTime = 0.0, fps = 0.0;
 float spin_height = 0.01, spin_width = 0.005;
 bool spin_mode_toggle = true, spin_hw_toggle = true;
-//float cameraPitch, cameraYaw, cameraDistance;
+ObjLoader teapot;
+float cameraPitch, cameraYaw, cameraDistance;
+
+GLuint location(const GLchar* u) 
+{ 
+	// FIXED PROGRAM
+	return glGetUniformLocation(currentProgram, u); 
+}
 
 float lightRect[] = {
 	-1.0, -1.0,  0.0,
@@ -142,6 +158,15 @@ void init(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
+	teapot = ObjLoader("models/teapot.obj");
+
+	glGenBuffers(1, &teapotBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * teapot.position.size(), &(teapot.position[0]), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, NULL);
+
 	/* line 220 */
 	// Create Program
 	currentProgram = createProgram(vertex_shader, fragment_shader);
@@ -210,6 +235,12 @@ void init(void) {
 
 	// unbind texture
 	glBindTexture(GL_TEXTURE_2D, NULL);
+
+	float Camera_Pos_[3] = { 0, 3, 48 };
+	cameraDistance = sqrtf(Camera_Pos_[0] * Camera_Pos_[0] + Camera_Pos_[1] * Camera_Pos_[1] + Camera_Pos_[2] * Camera_Pos_[2]);
+	cameraPitch = 89.9187;
+	cameraYaw = 449.655;
+
 }
 
 void setClampedTextureState() {
@@ -218,6 +249,7 @@ void setClampedTextureState() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
+float newLightRect[18];
 
 
 void RenderSceneGeometry()
@@ -228,20 +260,24 @@ void RenderSceneGeometry()
 	
 	glDisable(GL_CULL_FACE);
 
-	eyez = 34;
-
+	glm::vec3 Camera_Pos;
+	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
+	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
+	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
+	
 	glMatrixMode(GL_MODELVIEW);
 	
 	glLoadIdentity();
 	glPushMatrix();
-	glTranslated(0.0, 3.0, eyez);
+	glTranslated(0.0, 3.0, 38);
 	GLfloat view[16];
 	glGetFloatv(GL_MODELVIEW_MATRIX, view);
 	glPopMatrix();
 
-	glm::vec3 cameraPos = glm::vec3(0.0, 3.0, eyez + 10);
+	glm::vec3 cameraPos = Camera_Pos;// glm::vec3(0.0, 3.0, 38 + 10);
 
-	glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	//glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + (LightCenter - cameraPos), glm::vec3(0, 1, 0));
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &newView[0][0]);
 
@@ -250,6 +286,7 @@ void RenderSceneGeometry()
 	model = glm::translate(model, LightCenter);
 	model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
 	model = glm::rotate(model, rotz, glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
 
@@ -257,16 +294,30 @@ void RenderSceneGeometry()
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
 
+	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 0.0, 0.0);
+
 	GLuint vertexPositionLocation = glGetAttribLocation(simpleProgram, "position");
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, newLightRect, GL_STATIC_DRAW);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
+	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0, 0, 25));
+	
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 1.0, 1.0);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+
 	glDisableVertexAttribArray(vertexPositionLocation);
-	
-	
 
 }
 
@@ -575,6 +626,24 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case 'p': {if (demo_speed.speed > 1) { --demo_speed.speed; }break; }
 	case '[': {spin_mode_toggle = !spin_mode_toggle; break; }
 	case ']': {spin_hw_toggle = !spin_hw_toggle; break; }
+	
+	case '.': {
+		std::cout << cameraPitch << std::endl; 
+		cameraPitch += 1; break; 
+	}
+	case '/': {
+		std::cout << cameraPitch << std::endl;
+		cameraPitch -= 1; break; 
+	}
+	case ';': {
+		std::cout << cameraYaw << std::endl;
+		cameraYaw += 1; break;
+	}
+	case '\'': {
+		std::cout << cameraYaw << std::endl;
+		cameraYaw -= 1; break;
+	}
+	
 	case '1': {dsColor.dcolor[0] = dsColor.dcolor[1] = dsColor.dcolor[2] = 1; break; }
 	case '2': {dsColor.dcolor[0] = 0; break; }
 	case '3': {dsColor.dcolor[1] = 0; break; }
