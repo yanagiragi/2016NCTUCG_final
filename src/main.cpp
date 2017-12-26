@@ -9,6 +9,8 @@
 
 #include "../include/GL/glew.h"
 #include "../include/GL/freeglut.h"
+#include "../include/glm/glm.hpp"
+#include "../include/glm/gtc/matrix_transform.hpp"
 
 #include "../include/shader.h"
 #include "data.hpp"
@@ -26,12 +28,12 @@ void keyboard(unsigned char key, int uni_name, int y);
 void mouseWheel(int wheel, int direction, int uni_name, int y);
 void idle(void);
 
-GLuint currentProgram, blitProgram, debugProgram, depthProgram;
+GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram;
 GLuint rttFramebuffer, rttTexture, depthTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;
 GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer;
+GLuint buffer, lightRectBuffer;
 struct _parameters { int screenWidth; int screenHeight; }parameters;
 std::time_t parameters_time;
 GLuint location(const GLchar* u) { return glGetUniformLocation(currentProgram, u); }
@@ -48,6 +50,18 @@ int frame, time_of_glut, timebase;
 double execTime = 0.0, fps = 0.0;
 float spin_height = 0.01, spin_width = 0.005;
 bool spin_mode_toggle = true, spin_hw_toggle = true;
+//float cameraPitch, cameraYaw, cameraDistance;
+
+float lightRect[] = {
+	-1.0, -1.0,  0.0,
+	 1.0, -1.0,  0.0, 
+	-1.0,  1.0,  0.0,
+	 1.0, -1.0,  0.0,
+	 1.0,  1.0,  0.0,
+	-1.0,  1.0,  0.0
+};
+
+glm::vec3 LightCenter = glm::vec3(0, 6, 32);
 
 struct _demo_speed {
 	int mode_counter;
@@ -107,12 +121,25 @@ void init(void) {
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	float floor[] = {
-		-1.0, -1.0,  1.0, -1.0,	-1.0,  1.0,
-		1.0, -1.0,  1.0,  1.0, -1.0,  1.0
+		-1.0, -1.0,
+		 1.0, -1.0,
+		-1.0,  1.0,
+		 1.0, -1.0,
+		 1.0,  1.0,
+		 -1.0,  1.0
 	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, floor, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, NULL);
+
+	glGenBuffers(1, &lightRectBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	
+	// Static for Now
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, lightRect, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
 	/* line 220 */
@@ -157,6 +184,10 @@ void init(void) {
 	GLuint blit_fs = createShader("shaders/ltc/ltc_blit.fs", "fragment");
 	blitProgram = createProgram(blit_vs, blit_fs);
 
+	GLuint simple_vs = createShader("shaders/simple.vs", "vertex");
+	GLuint simple_fs = createShader("shaders/simple.fs", "fragment");
+	simpleProgram = createProgram(simple_vs, simple_fs);
+
 	/*GLuint shadowMap_vs = createShader("shaders/shadowMap.vs", "vertex");
 	GLuint shadowMap_fs = createShader("shaders/shadowMap.fs", "fragment");
 	depthProgram = createProgram(shadowMap_vs, shadowMap_fs);
@@ -188,6 +219,57 @@ void setClampedTextureState() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
+
+void RenderSceneGeometry()
+{
+	glUseProgram(simpleProgram);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	
+	glDisable(GL_CULL_FACE);
+
+	eyez = 34;
+
+	glMatrixMode(GL_MODELVIEW);
+	
+	glLoadIdentity();
+	glPushMatrix();
+	glTranslated(0.0, 3.0, eyez);
+	GLfloat view[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, view);
+	glPopMatrix();
+
+	glm::vec3 cameraPos = glm::vec3(0.0, 3.0, eyez + 10);
+
+	glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &newView[0][0]);
+
+	glm::mat4 model(1.0f);
+	
+	model = glm::translate(model, LightCenter);
+	model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, rotz, glm::vec3(0, 0, 1));
+
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
+
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+
+	GLuint vertexPositionLocation = glGetAttribLocation(simpleProgram, "position");
+
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(vertexPositionLocation);
+	
+	
+
+}
+
 void RenderScene()
 {
 	// Load program into GPU
@@ -202,7 +284,6 @@ void RenderScene()
 	GLfloat view[16];
 	glGetFloatv(GL_MODELVIEW_MATRIX, view);
 	glPopMatrix();
-
 
 	/* line 577*/
 	// Get var locations
@@ -234,6 +315,8 @@ void RenderScene()
 	glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
 	glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
 	/* line - 604 */
+
+	glUniform3f(glGetUniformLocation(currentProgram, "LightCenter"), LightCenter.x, LightCenter.y, LightCenter.z);
 
 	/* line 608 -  */
 	glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
@@ -406,10 +489,12 @@ void draw() {
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	RenderScene();
+	//RenderScene();
 	//RenderShadowMap();
 
-	BiltRender();
+	RenderSceneGeometry();
+
+	//BiltRender();
 	//DebugRender();
 
 	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));

@@ -41,6 +41,12 @@
     <None Include="shaders\ltc\ltc_blit.vs">
       <Filter>shaders\ltc</Filter>
     </None>
+    <None Include="shaders\simple.fs">
+      <Filter>shaders\ltc</Filter>
+    </None>
+    <None Include="shaders\simple.vs">
+      <Filter>shaders\ltc</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

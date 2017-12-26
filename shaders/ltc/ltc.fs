@@ -5,6 +5,8 @@ layout(binding = 1) uniform sampler2D ltc_mag;
 
 out vec4 outColor;
 
+uniform vec3 LightCenter;
+
 uniform float roughness;	// bind roughness   {label:"Roughness", default:0.25, min:0.01, max:1, step:0.001}
 uniform vec3 dcolor;		// bind dcolor      {label:"Diffuse Color",  r:1.0, g:1.0, b:1.0}
 uniform vec3 scolor;		// bind scolor      {label:"Specular Color", r:1.0, g:1.0, b:1.0}
@@ -145,7 +147,7 @@ void InitRect(out Rect rect){
 	rect.dirx = rotation_yz(vec3(1, 0, 0), roty*2.0*pi, rotz*2.0*pi);
 	rect.diry = rotation_yz(vec3(0, 1, 0), roty*2.0*pi, rotz*2.0*pi);
 
-	rect.center = vec3(0, 6, 32);
+	rect.center = LightCenter;
 	rect.halfx = 0.5*width;
 	rect.halfy = 0.5*height;
 
