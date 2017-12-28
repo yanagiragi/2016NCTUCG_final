@@ -123,10 +123,14 @@
     <ClInclude Include="src\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\Debug.fs" />
+    <None Include="shaders\Debug.vs" />
     <None Include="shaders\ltc\ltc.fs" />
     <None Include="shaders\ltc\ltc.vs" />
     <None Include="shaders\ltc\ltc_blit.fs" />
     <None Include="shaders\ltc\ltc_blit.vs" />
+    <None Include="shaders\shadowMap.fs" />
+    <None Include="shaders\shadowMap.vs" />
     <None Include="shaders\simple.fs" />
     <None Include="shaders\simple.vs" />
   </ItemGroup>

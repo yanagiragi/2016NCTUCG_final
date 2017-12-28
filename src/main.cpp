@@ -36,7 +36,7 @@ GLuint rttFramebuffer, rttTexture, depthTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;
 GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer, lightRectBuffer, teapotBuffer;
+GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer;
 struct _parameters 
 {
 	int screenWidth; 
@@ -187,23 +187,24 @@ void init(void) {
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+
+	glGenFramebuffers(1, &depthBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
+
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL); // Note: use GL_RGBA32F instead of GL_RGBA
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	setClampedTextureState();
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMap, 0);
-	glBindTexture(GL_TEXTURE_2D, NULL);
-
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, depthTexture, 0);	
 	//glDrawBuffer(GL_NONE);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "FrameBuffer is Not OK" << std::endl;
-
+	//glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
 
-
+	
 	/* line 239 - 256*/
 	GLuint blit_vs = createShader("shaders/ltc/ltc_blit.vs", "vertex");
 	GLuint blit_fs = createShader("shaders/ltc/ltc_blit.fs", "fragment");
@@ -213,13 +214,13 @@ void init(void) {
 	GLuint simple_fs = createShader("shaders/simple.fs", "fragment");
 	simpleProgram = createProgram(simple_vs, simple_fs);
 
-	/*GLuint shadowMap_vs = createShader("shaders/shadowMap.vs", "vertex");
+	GLuint shadowMap_vs = createShader("shaders/shadowMap.vs", "vertex");
 	GLuint shadowMap_fs = createShader("shaders/shadowMap.fs", "fragment");
 	depthProgram = createProgram(shadowMap_vs, shadowMap_fs);
 
 	GLuint debug_vs = createShader("shaders/Debug.vs", "vertex");
 	GLuint debug_fs = createShader("shaders/Debug.fs", "fragment");
-	debugProgram = createProgram(debug_vs, debug_fs);*/
+	debugProgram = createProgram(debug_vs, debug_fs);
 
 	/* line 275 - */
 	glGenTextures(1, &ltc_mat_texture);
@@ -388,90 +389,69 @@ void RenderScene()
 
 void RenderShadowMap()
 {
-	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	// Load program into GPU
-	glUseProgram(currentProgram);
 	
-	glMatrixMode(GL_MODELVIEW);
-	/* line 571*/
-	glLoadIdentity();
-	glPushMatrix();
-	glTranslated(0.0, 3.0, eyez);
-	GLfloat view[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, view);
-	glPopMatrix();
-
-
-	/* line 577*/
-	// Get var locations
-	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
-
-	/* line 583 - 593*/
-	// Set values to program variables
-	for (const GLchar* x : g_params_names) {
-		float value = *(g_params[x]);
-		GLuint loc = location(x);
-		glUniform1f(loc, value);
-	}
-	glUniform1i(location("twoSided"), twoSided);
-	glUniform3f(location("dcolor"), dsColor.dcolor[0], dsColor.dcolor[1], dsColor.dcolor[2]);
-	glUniform3f(location("scolor"), dsColor.scolor[0], dsColor.scolor[1], dsColor.scolor[2]);
-	glUniform1i(location("mode"), mode);
-
-
-	/* line 594 - 596*/
-	glUniformMatrix4fv(location("view"), 1, GL_FALSE, view);
-	glUniform2f(location("resolution"), parameters.screenWidth, parameters.screenHeight);
-
-	/* line 598 - */
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
-	glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
-	glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
-	/* line - 604 */
-
-	/* line 608 -  */
-	glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, depthTexture, 0);
-
-	//GLenum DrawBuffers[1] = { GL_DEPTH_ATTACHMENT };
-	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
-
+	glUseProgram(depthProgram);
 	
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	/* line - 619 */
+	//glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
+	//glEnable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
-	/* line 621 - */
-	// Render geometry
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
+	glm::vec3 Camera_Pos;
+	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
+	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
+	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
+
+	glm::vec3 cameraPos = Camera_Pos;// glm::vec3(0.0, 3.0, 38 + 10);
+
+	glm::mat4 model(1.0f);
+	model = glm::translate(model, LightCenter);
+	model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, rotz, glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
+
+	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + (LightCenter - cameraPos), glm::vec3(0, 1, 0));
+
+	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
+
+	glm::mat4 MVP = proj * view * model;
+
+	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+
+	GLuint vertexPositionLocation = glGetAttribLocation(depthProgram, "position");
+
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
+
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0, 0, 25));
+
+	MVP = proj * view * model;
+
+	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+
 	glDisableVertexAttribArray(vertexPositionLocation);
 
-	/* line 628 */
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	glUseProgram(NULL);
 }
 
 GLuint pixels[512 * 512 * 3];
 
 void DebugRender()
 {
-	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
-
 	glUseProgram(debugProgram);
-	glDisable(GL_BLEND);
-
-	GLuint tex = depthTexture;
+	
+	GLuint tex = rttTexture;
 
 	/* line 633 */
 	// Set textures
@@ -487,16 +467,14 @@ void DebugRender()
 	}
 
 	glUniform1i(glGetUniformLocation(debugProgram, "tex"), 0);
-	/* line 638 */
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glUniform2f(glGetUniformLocation(debugProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
 
 	/* line 645 */
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	// Blit pass
+	GLuint vertexPositionLocation = glGetAttribLocation(debugProgram, "position");
 	glEnableVertexAttribArray(vertexPositionLocation);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -538,12 +516,12 @@ void draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//RenderScene();
-	//RenderShadowMap();
+	RenderShadowMap();
 
-	RenderSceneGeometry();
+	//RenderSceneGeometry();
 
 	//BiltRender();
-	//DebugRender();
+	DebugRender();
 
 	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
 	glBindTexture(GL_TEXTURE_2D, NULL);
