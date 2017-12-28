@@ -189,16 +189,18 @@ void init(void) {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
+	glBindTexture(GL_TEXTURE_2D, NULL);
+
 	glGenFramebuffers(1, &depthBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	setClampedTextureState();
+	//setClampedTextureState();
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, depthTexture, 0);	
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);
 	//glDrawBuffer(GL_NONE);
 	//glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
@@ -392,11 +394,11 @@ void RenderShadowMap()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glUseProgram(depthProgram);
-	
-	//glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
+	
 	//glEnable(GL_DEPTH_TEST);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_DEPTH_BUFFER_BIT);
 
 	glm::vec3 Camera_Pos;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
@@ -420,6 +422,8 @@ void RenderShadowMap()
 	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
 
 	GLuint vertexPositionLocation = glGetAttribLocation(depthProgram, "position");
+
+	
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -451,7 +455,8 @@ void DebugRender()
 {
 	glUseProgram(debugProgram);
 	
-	GLuint tex = rttTexture;
+	//GLuint tex = rttTexture;
+	GLuint tex = depthTexture;
 
 	/* line 633 */
 	// Set textures
@@ -467,14 +472,19 @@ void DebugRender()
 	}
 
 	glUniform1i(glGetUniformLocation(debugProgram, "tex"), 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	glUniform2f(glGetUniformLocation(debugProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
 
 	/* line 645 */
-	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	// Blit pass
 	GLuint vertexPositionLocation = glGetAttribLocation(debugProgram, "position");
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -501,7 +511,11 @@ void BiltRender()
 
 	/* line 645 */
 	// Blit pass
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	
 	glEnableVertexAttribArray(vertexPositionLocation);
+	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
+	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	
 }
@@ -515,7 +529,7 @@ void draw() {
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//RenderScene();
+	RenderScene();
 	RenderShadowMap();
 
 	//RenderSceneGeometry();
