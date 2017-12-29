@@ -61,6 +61,7 @@ float spin_height = 0.01, spin_width = 0.005;
 bool spin_mode_toggle = true, spin_hw_toggle = true;
 ObjLoader teapot;
 float cameraPitch, cameraYaw, cameraDistance;
+GLubyte *p;
 
 GLuint location(const GLchar* u) 
 { 
@@ -93,6 +94,62 @@ std::vector<const GLchar*> g_params_names = {
 	"intensity",
 	"roughness",
 };
+
+void screenshot_ppm_Depth(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels, GLuint tex) {
+	size_t i, j, k, cur;
+	const size_t format_nchannels = 1;
+	FILE *f = fopen(filename, "w");
+	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
+	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+	glGetTextureImage(tex, 0, GL_DEPTH_COMPONENT, GL_FLOAT, sizeof(GLfloat) * width * height, pixels);
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j++) {
+			cur = format_nchannels * ((height - i - 1) * width + j);
+			float p = (pixels)[cur];
+			int pInt = p * 255.0;
+			fprintf(f, "%3d %3d %3d ", pInt, pInt, pInt);
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
+}
+
+void screenshot_ppm_Depth(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels) {
+	size_t i, j, k, cur;
+	const size_t format_nchannels = 1;
+	FILE *f = fopen(filename, "w");
+	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j++) {
+			cur = format_nchannels * ((height - i - 1) * width + j);
+			float p = (pixels)[cur];
+			int pInt = p * 255.0;
+			fprintf(f, "%3d %3d %3d ", pInt, pInt, pInt);
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
+}
+
+void screenshot_ppm_RGB(const char *filename, unsigned int width, unsigned int height, GLubyte *pixels) {
+	size_t i, j, k, cur;
+	const size_t format_nchannels = 3;
+	FILE *f = fopen(filename, "w");
+	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
+	pixels = (GLubyte*)realloc(pixels, format_nchannels * sizeof(GLubyte) * width * height);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	int sum = 0;
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j++) {
+			cur = format_nchannels * ((height - i - 1) * width + j);
+			fprintf(f, "%3d %3d %3d ", (pixels)[cur], (pixels)[cur + 1], (pixels)[cur + 2]);
+			sum += (int)(pixels)[cur] + (int)(pixels)[cur + 1] + (int)(pixels)[cur + 2];
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
+}
 
 int main(int argc, char *argv[])
 {
@@ -195,30 +252,29 @@ void init(void) {
 	*	Generate Depth Map
 	*/
 
-	//depthBuffer = 0;
-
 	glGenFramebuffers(1, &depthBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);
-	
-	//setClampedTextureState();
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);;
 
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
+	glDrawBuffer(GL_NONE);
 
-	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthTexture, 0);
-	//glDrawBuffer(GL_NONE);
+	// Always check that our framebuffer is ok
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "FrameBuffer Not Ready" << std::endl;
 
-	//glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
@@ -402,23 +458,22 @@ void RenderScene()
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glDisableVertexAttribArray(vertexPositionLocation);
 
+
 	/* line 628 */
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 }
 
 void RenderShadowMap()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
+	//glViewport(0, 0, 512, 512);
+
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	glUseProgram(depthProgram);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
-	//glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-	//glViewport(0, 0, 512, 512);
-	//glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
-	
-	//glEnable(GL_DEPTH_TEST);
-	//glClear(GL_DEPTH_BUFFER_BIT);
 
 	glm::vec3 Camera_Pos;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
@@ -442,7 +497,6 @@ void RenderShadowMap()
 	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
 
 	GLuint vertexPositionLocation = glGetAttribLocation(depthProgram, "position");	
-
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -468,7 +522,7 @@ void RenderShadowMap()
 	glUseProgram(NULL);
 }
 
-GLfloat pixels[512 * 512 * 4];
+GLfloat pixels[512 * 512];
 
 void DebugRender()
 {
@@ -477,18 +531,20 @@ void DebugRender()
 	//GLuint tex = rttTexture;
 	GLuint tex = depthTexture;
 
+	screenshot_ppm_Depth("output.ppm", 512, 512, pixels, depthTexture);
+
 	/* line 633 */
 	// Set textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex);
 
-	/*glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
 
 	float sum = 0;
-	for (int i = 0; i < 512 * 512 * 4; ++i)
+	for (int i = 0; i < 512 * 512; ++i)
 	{
 		sum += pixels[i];
-	}*/
+	}
 
 	glUniform1i(glGetUniformLocation(debugProgram, "tex"), 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -504,12 +560,13 @@ void DebugRender()
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	// Blit pass
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void BiltRender()
 {
+	//FBO_2_PPM_file(512, 512);
 	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
 
 	glUseProgram(blitProgram);
@@ -538,6 +595,7 @@ void BiltRender()
 	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	
+	return;
 }
 
 void draw() {
@@ -663,6 +721,12 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case '8': {dsColor.scolor[2] = 0; break; }
 	case '9': {break; }
 	case '0': {dsColor = { { 1,1,1 },{ 1,1,1 } }; break; }
+
+	case '\\':
+	{
+		screenshot_ppm_RGB("output.ppm", 512, 512, p);
+		break;
+	}
 
 	default: {break; }
 	}
