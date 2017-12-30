@@ -39,7 +39,7 @@ GLuint rttFramebuffer, rttTexture, depthTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;
 GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer;
+GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer;
 struct _parameters 
 {
 	int screenWidth; 
@@ -81,6 +81,15 @@ float lightRect[] = {
 	 1.0, -1.0,  0.0,
 	 1.0,  1.0,  0.0,
 	-1.0,  1.0,  0.0
+};
+
+float FloorRect[] = {
+	-1.0, 0.0, -1.0,
+	 1.0, 0.0, -1.0,
+	-1.0, 0.0,  1.0,
+	 1.0, 0.0, -1.0,
+	 1.0, 0.0,  1.0,
+	-1.0, 0.0,  1.0
 };
 
 glm::vec3 LightCenter = glm::vec3(0, 6, 32);
@@ -224,6 +233,16 @@ void init(void) {
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
+	glGenBuffers(1, &floorRectBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
+
+	// Static for Now
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, FloorRect, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, NULL);
+
+
 	glGenBuffers(1, &lightRectBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	
@@ -366,68 +385,93 @@ void RenderSceneGeometry()
 	
 	glDisable(GL_CULL_FACE);
 
-	glm::vec3 Camera_Pos;
+	/*glm::vec3 Camera_Pos;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
+	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));*/
 	
-	glm::vec3 cameraPos = glm::vec3(0, 3, -3);
-	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
+	GLuint vertexPositionLocation = glGetAttribLocation(simpleProgram, "position");
 
+	//glm::vec3 cameraPos = glm::vec3(0, 3, -3);
+	glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
+
+	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &view[0][0]);
+
+	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+	//glm::mat4 proj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
 
 	glm::mat4 model(1.0f);
 	
-	model = glm::translate(model, LightCenter);
-	
-	/*vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
-	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
-	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);} */
-
-	/*glm::vec3 v = glm::vec3(0, 1, 0);
-	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
-	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
-	
-	v = glm::vec3(0, 0, 1);
-	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz	), v.z);*/
-
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
-
-	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
-
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
-
-	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
-
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
-
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 0.0, 0.0);
-
-	GLuint vertexPositionLocation = glGetAttribLocation(simpleProgram, "position");
-
-	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, newLightRect, GL_STATIC_DRAW);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	/*
+	*	Draw the Floor
+	*/
 
 	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, 0, 25));
-	
+	model = glm::translate(model, glm::vec3(0, 0, 0));
+	model = glm::scale(model, glm::vec3(50, 1, 90));
+
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 0.0, 1.0, 0.0);	
+	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	/*
+	*	Draw the Teapot
+	*/
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0, 0, 15));
+	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
+
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 1.0, 1.0);
-	
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
 	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
 
-	glDisableVertexAttribArray(vertexPositionLocation);
+	/*
+	*	Draw the Light Rect
+	*/
+	
+	model = glm::mat4(1.0f);
+	// Light Center = vec3(0, 6, 32);
+	model = glm::translate(model, LightCenter);
 
+	/*
+	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
+	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
+	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);} 
+	*/
+
+	/*
+	glm::vec3 v = glm::vec3(0, 1, 0);
+	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
+	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
+
+	v = glm::vec3(0, 0, 1);
+	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
+	*/
+	
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
+
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 0.0, 0.0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(vertexPositionLocation);
 }
 
 void RenderScene()
