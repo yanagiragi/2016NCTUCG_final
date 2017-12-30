@@ -28,7 +28,7 @@
 
 void init(void);
 void display(void);
-void setClampedTextureState(void);
+/*void setClampedTextureState(void);*/
 void reshape(int width, int height);
 void keyboard(unsigned char key, int uni_name, int y);
 void mouseWheel(int wheel, int direction, int uni_name, int y);
@@ -48,9 +48,11 @@ struct _parameters
 
 std::time_t parameters_time;
 
+int ymode = 0; // special mode for debug
 
 float eyez = 3.0;
-float roty = 0.23, rotz = 0.082;
+//float roty = 0.23, rotz = 0.082;
+float roty = 0.0, rotz = 0.0;
 float height = 8.0, width = 8.0;
 float lightIntensity = 4.0, roughness = 0.02;
 struct d_s_color { float dcolor[3], scolor[3]; };
@@ -89,15 +91,15 @@ struct _demo_speed {
 	int speed = 3;
 } demo_speed;
 
-std::map<std::string, GLfloat*> g_params;
-std::vector<const GLchar*> g_params_names = {
-	"roty",
-	"rotz",
-	"height",
-	"width",
-	"intensity",
-	"roughness",
-};
+//std::map<std::string, GLfloat*> g_params;
+//std::vector<const GLchar*> g_params_names = {
+//	"roty",
+//	"rotz",
+//	"height",
+//	"width",
+//	"intensity",
+//	"roughness",
+//};
 
 tutorial16 t16;
 static const GLfloat g_quad_vertex_buffer_data[] = {
@@ -175,13 +177,13 @@ int main(int argc, char *argv[])
 	glutReshapeWindow(512, 512);
 	glewInit();
 
-	/* line 33 js/super_slider.js */
-	g_params["roty"] = &roty;
-	g_params["rotz"] = &rotz;
-	g_params["height"] = &height;
-	g_params["width"] = &width;
-	g_params["intensity"] = &lightIntensity;
-	g_params["roughness"] = &roughness;
+	///* line 33 js/super_slider.js */
+	//g_params["roty"] = &roty;
+	//g_params["rotz"] = &rotz;
+	//g_params["height"] = &height;
+	//g_params["width"] = &width;
+	//g_params["intensity"] = &lightIntensity;
+	//g_params["roughness"] = &roughness;
 
 	init();
 
@@ -317,12 +319,18 @@ void init(void) {
 	glGenTextures(1, &ltc_mat_texture);
 	glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 64, 64, 0, GL_RGBA, GL_FLOAT, g_ltc_mat); // Note: use GL_RGBA32F instead of GL_RGBA
-	setClampedTextureState();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glGenTextures(1, &ltc_mag_texture);
 	glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, 64, 64, 0, GL_ALPHA, GL_FLOAT, g_ltc_mag);
-	setClampedTextureState();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	/* line - 283 */
 
 	// unbind texture
@@ -342,12 +350,13 @@ void init(void) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
 }
 
-void setClampedTextureState() {
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-}
+//void setClampedTextureState() 
+//{
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//}
 
 void RenderSceneGeometry()
 {
@@ -362,27 +371,30 @@ void RenderSceneGeometry()
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
 	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
 	
-	glMatrixMode(GL_MODELVIEW);
-	
-	glLoadIdentity();
-	glPushMatrix();
-	glTranslated(0.0, 3.0, 38);
-	GLfloat view[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, view);
-	glPopMatrix();
+	glm::vec3 cameraPos = glm::vec3(0, 3, -3);
+	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 
-	glm::vec3 cameraPos = Camera_Pos;// glm::vec3(0.0, 3.0, 38 + 10);
-
-	//glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
-	glm::mat4 newView = glm::lookAt(cameraPos, cameraPos + (LightCenter - cameraPos), glm::vec3(0, 1, 0));
-
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &newView[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &view[0][0]);
 
 	glm::mat4 model(1.0f);
 	
 	model = glm::translate(model, LightCenter);
-	model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, rotz, glm::vec3(0, 0, 1));
+	
+	/*vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
+	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
+	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);} */
+
+	/*glm::vec3 v = glm::vec3(0, 1, 0);
+	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
+	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
+	
+	v = glm::vec3(0, 0, 1);
+	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz	), v.z);*/
+
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
+
 	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
@@ -437,18 +449,25 @@ void RenderScene()
 	// Get var locations
 	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
 
-	/* line 583 - 593*/
+	/* line 583 - 593 */
 	// Set values to program variables
-	for (const GLchar* x : g_params_names) {
-		float value = *(g_params[x]);
-		GLuint loc = location(x);
-		glUniform1f(loc, value);
-	}
+	//for (const GLchar* x : g_params_names) {
+	//	float value = *(g_params[x]);
+	//	GLuint loc = location(x);
+	//	glUniform1f(loc, value);
+	//}
+
+	glUniform1f(location("roty"), roty);
+	glUniform1f(location("rotz"), rotz);
+	glUniform1f(location("height"), height);
+	glUniform1f(location("width"), width);
+	glUniform1f(location("intensity"), lightIntensity);
+	glUniform1f(location("roughness"), roughness);
+
 	glUniform1i(location("twoSided"), twoSided);
 	glUniform3f(location("dcolor"), dsColor.dcolor[0], dsColor.dcolor[1], dsColor.dcolor[2]);
 	glUniform3f(location("scolor"), dsColor.scolor[0], dsColor.scolor[1], dsColor.scolor[2]);
 	glUniform1i(location("mode"), mode);
-
 
 	/* line 594 - 596*/
 	glUniformMatrix4fv(location("view"), 1, GL_FALSE, view);
@@ -583,7 +602,7 @@ void DebugRender()
 	//GLuint tex = rttTexture;
 	GLuint tex = depthTexture;
 
-	screenshot_ppm_Depth("output.ppm", 512, 512, pixels, depthTexture);
+	//screenshot_ppm_Depth("output.ppm", 512, 512, pixels, depthTexture);
 
 	// Set textures
 	glActiveTexture(GL_TEXTURE0);
@@ -663,14 +682,20 @@ void draw() {
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	RenderScene();
-	RenderShadowMap();
+	//RenderScene();
+	//RenderShadowMap();
 	//t16.RenderShadowMap16(depthBuffer, depthProgram);
-
-	//RenderSceneGeometry();
-
+	
 	//BiltRender();
-	DebugRender();
+	//DebugRender();
+
+	if (ymode == 0) {
+		RenderSceneGeometry();
+	}
+	else if (ymode == 1) {
+		RenderScene();
+		BiltRender();
+	}
 
 	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
 	glBindTexture(GL_TEXTURE_2D, NULL);
@@ -766,6 +791,12 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case '\'': {
 		std::cout << cameraYaw << std::endl;
 		cameraYaw -= 1; break;
+	}
+
+	case 'x': {
+		ymode++;
+		ymode = ymode % 2;
+		break;
 	}
 	
 	case '1': {dsColor.dcolor[0] = dsColor.dcolor[1] = dsColor.dcolor[2] = 1; break; }

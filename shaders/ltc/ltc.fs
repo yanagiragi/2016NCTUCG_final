@@ -146,7 +146,7 @@ bool Ray_12_RectIntersect(Ray ray, Rect rect, out float t){
 void InitRect(out Rect rect){
 	rect.dirx = rotation_yz(vec3(1, 0, 0), roty*2.0*pi, rotz*2.0*pi);
 	rect.diry = rotation_yz(vec3(0, 1, 0), roty*2.0*pi, rotz*2.0*pi);
-
+	
 	rect.center = LightCenter;
 	rect.halfx = 0.5*width;
 	rect.halfy = 0.5*height;
