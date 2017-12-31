@@ -413,15 +413,15 @@ void RenderSceneGeometryWithShadowMap()
 	/*glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
-	glm::vec3 Camera_Pos;
+	/*glm::vec3 Camera_Pos;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
+	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));*/
 
 	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
 
-	//glm::vec3 cameraPos = glm::vec3(0, 3, -3);
-	glm::vec3 cameraPos = Camera_Pos;
+	glm::vec3 cameraPos = glm::vec3(0, 3, -3);
+	//glm::vec3 cameraPos = Camera_Pos;
 	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
 
 	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
