@@ -34,7 +34,7 @@ void keyboard(unsigned char key, int uni_name, int y);
 void mouseWheel(int wheel, int direction, int uni_name, int y);
 void idle(void);
 
-GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram;
+GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram;
 GLuint rttFramebuffer, rttTexture, depthTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;
@@ -345,13 +345,17 @@ void init(void) {
 	GLuint simple_fs = createShader("shaders/simple.fs", "fragment");
 	simpleProgram = createProgram(simple_vs, simple_fs);
 
-	GLuint shadowMap_vs = createShader("shaders/shadowMap.vs", "vertex");
-	GLuint shadowMap_fs = createShader("shaders/shadowMap.fs", "fragment");
+	GLuint shadowMap_vs = createShader("shaders/GenShadowMap.vs", "vertex");
+	GLuint shadowMap_fs = createShader("shaders/GenShadowMap.fs", "fragment");
 	depthProgram = createProgram(shadowMap_vs, shadowMap_fs);
 
 	GLuint debug_vs = createShader("shaders/Debug.vs", "vertex");
 	GLuint debug_fs = createShader("shaders/Debug.fs", "fragment");
 	debugProgram = createProgram(debug_vs, debug_fs);
+
+	GLuint shadow_vs = createShader("shaders/shadow.vs", "vertex");
+	GLuint shadow_fs = createShader("shaders/shadow.fs", "fragment");
+	shadowProgram = createProgram(shadow_vs, shadow_fs);
 
 	/* line 275 - */
 	glGenTextures(1, &ltc_mat_texture);
@@ -395,6 +399,128 @@ void init(void) {
 //	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 //	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 //}
+
+void RenderSceneGeometryWithShadowMap()
+{
+	GLuint currentProgram = shadowProgram;
+
+	glUseProgram(currentProgram);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+
+	glDisable(GL_CULL_FACE);
+
+	/*glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+
+	glm::vec3 Camera_Pos;
+	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
+	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
+	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
+
+	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
+
+	//glm::vec3 cameraPos = glm::vec3(0, 3, -3);
+	glm::vec3 cameraPos = Camera_Pos;
+	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
+
+	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &view[0][0]);
+
+	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+
+	float w = 14.35;
+	glm::mat4 proj_depth = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
+	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
+
+	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+	//glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0, 1, 0));
+	//glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
+
+	glActiveTexture(0);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	//glUniform1i(glGetUniformLocation(currentProgram, "shadowMap"), depthTexture);
+
+	glm::mat4 model(1.0f);
+
+	/*
+	*	Draw the Floor
+	*/
+
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0, 0, 0));
+	model = glm::scale(model, glm::vec3(50, 1, 90));
+
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform3f(glGetUniformLocation(currentProgram, "color"), 0.0, 1.0, 0.0);
+	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	/*
+	*	Draw the Teapot
+	*/
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	model = glm::mat4(1.0f);
+	// model = glm::translate(model, glm::vec3(0, 0, 15));
+	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
+	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
+
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glUniform3f(glGetUniformLocation(currentProgram, "color"), 0.0, 0.0, 1.0);
+	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+
+	/*
+	*	Draw the Light Rect
+	*/
+
+	model = glm::mat4(1.0f);
+	// Light Center = vec3(0, 6, 32);
+	model = glm::translate(model, LightCenter);
+
+
+	/*
+	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
+	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
+	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);}
+	*/
+
+	/*
+	glm::vec3 v = glm::vec3(0, 1, 0);
+	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
+	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
+
+	v = glm::vec3(0, 0, 1);
+	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
+	*/
+
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
+
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1.0, 0.0, 0.0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(vertexPositionLocation);
+	glDisable(GL_BLEND);
+}
 
 void RenderSceneGeometry()
 {
@@ -588,6 +714,12 @@ void RenderShadowMap()
 	/*glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);*/
 
+	// We don't use bias in the shader, but instead we draw back faces, 
+	// which are already separated from the front faces by a small distance 
+	// (if your geometry is made this way)
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
+
 	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 	// glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
@@ -749,8 +881,10 @@ void draw() {
 	//t16.RenderShadowMap16(depthBuffer, depthProgram);
 	
 	//BiltRender();
-	DebugRender();
+	//DebugRender();
 
+	RenderSceneGeometryWithShadowMap();
+	
 	/*if (ymode == 0) {
 		RenderSceneGeometry();
 	}

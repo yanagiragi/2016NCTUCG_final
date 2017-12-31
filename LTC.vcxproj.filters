@@ -62,10 +62,16 @@
     <None Include="shaders\Debug.vs">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\shadowMap.fs">
+    <None Include="shaders\GenShadowMap.fs">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\shadowMap.vs">
+    <None Include="shaders\GenShadowMap.vs">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shadow.vs">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shadow.fs">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

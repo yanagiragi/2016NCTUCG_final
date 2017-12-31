@@ -129,8 +129,10 @@
     <None Include="shaders\ltc\ltc.vs" />
     <None Include="shaders\ltc\ltc_blit.fs" />
     <None Include="shaders\ltc\ltc_blit.vs" />
-    <None Include="shaders\shadowMap.fs" />
-    <None Include="shaders\shadowMap.vs" />
+    <None Include="shaders\GenShadowMap.fs" />
+    <None Include="shaders\GenShadowMap.vs" />
+    <None Include="shaders\shadow.fs" />
+    <None Include="shaders\shadow.vs" />
     <None Include="shaders\simple.fs" />
     <None Include="shaders\simple.vs" />
   </ItemGroup>
