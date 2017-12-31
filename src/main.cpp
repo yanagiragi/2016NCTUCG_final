@@ -585,9 +585,6 @@ void RenderScene()
 
 void RenderShadowMap()
 {
-	/*glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);*/
-
 	/*glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_GREATER);*/
 
@@ -598,39 +595,48 @@ void RenderShadowMap()
 	
 	glUseProgram(depthProgram);
 
-	glm::vec3 Camera_Pos;
-	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
-	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
-
 	glm::vec3 cameraPos = glm::vec3(0.0, 3.0, -3);
-	
+		
 	glm::mat4 model(1.0f);
-	model = glm::translate(model, LightCenter);
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
-	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
+	glm::mat4 view(1.0f);
+	glm::mat4 proj(1.0f);
+	glm::mat4 MVP(1.0f);
 
-	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
+	view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	
 	float w = 14.35;
-	glm::mat4 proj = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
-	proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
+	proj = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
+	//proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 
-	glm::mat4 MVP = proj * view * model;
+	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	//view_depth = glm::lookAt(LightCenter, glm::vec3(10, 0, 33 + roty), glm::vec3(0, 1, 0));
+	
+	view = view_depth;
+	
+	/*
+	*	Draw the Floor
+	*/
 
-	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
-
-	GLuint vertexPositionLocation = glGetAttribLocation(depthProgram, "position");	
-
-	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-
+	// Why does floor not display?
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0, 0, 0));
+	model = glm::scale(model, glm::vec3(50, 1, 90));
+	MVP = proj * view * model;
+	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &model[0][0]);
+	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
+	glVertexAttribPointer(glGetAttribLocation(depthProgram, "position"), 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	/*
+	*	Draw the Teapot
+	*/
+
+	glm::vec3 teapotPosition = glm::vec3(10, 0, 33 + roty);
 
 	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
+	model = glm::translate(model, teapotPosition);
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
 
 	MVP = proj * view * model;
@@ -638,24 +644,11 @@ void RenderShadowMap()
 	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
+	glVertexAttribPointer(glGetAttribLocation(depthProgram, "position"), 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
 	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
 
-	glDisableVertexAttribArray(vertexPositionLocation);
-
-	/*view = glm::make_mat4(viewMatrix);
-
-	MVP = proj * view * model;
-	MVP = view;
-
-	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
-
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glDisableVertexAttribArray(vertexPositionLocation);*/
+	glDisableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
 
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glUseProgram(NULL);
@@ -670,7 +663,8 @@ void DebugRender()
 	//GLuint tex = rttTexture;
 	GLuint tex = depthTexture;
 
-	screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 100000);
+	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 100000);
+	screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
 
 	// Set textures
 	glActiveTexture(GL_TEXTURE0);
