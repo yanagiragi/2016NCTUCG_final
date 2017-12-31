@@ -398,9 +398,14 @@ void RenderSceneGeometry()
 	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &view[0][0]);
 
-	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+	//glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
+	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 	//glm::mat4 proj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+	glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+	glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0, 1, 0));
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
 
 	glm::mat4 model(1.0f);
 	
@@ -422,14 +427,16 @@ void RenderSceneGeometry()
 	/*
 	*	Draw the Teapot
 	*/
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, 0, 15));
+	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
 
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 1.0, 1.0);
+	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 0.0, 0.0, 1.0);
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
@@ -442,6 +449,7 @@ void RenderSceneGeometry()
 	model = glm::mat4(1.0f);
 	// Light Center = vec3(0, 6, 32);
 	model = glm::translate(model, LightCenter);
+
 
 	/*
 	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
@@ -472,6 +480,7 @@ void RenderSceneGeometry()
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(vertexPositionLocation);
+	glDisable(GL_BLEND);
 }
 
 void RenderScene()
