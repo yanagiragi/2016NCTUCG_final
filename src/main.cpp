@@ -122,6 +122,25 @@ static const GLfloat g_quad_vertex_buffer_data[] = {
 
 GLuint quad_vertexbuffer;
 
+void screenshot_ppm_DepthPow(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels, GLuint tex, float powFactor) {
+	size_t i, j, k, cur;
+	const size_t format_nchannels = 1;
+	FILE *f = fopen(filename, "w");
+	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
+	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+	glGetTextureImage(tex, 0, GL_DEPTH_COMPONENT, GL_FLOAT, sizeof(GLfloat) * width * height, pixels);
+	for (i = 0; i < height; i++) {
+		for (j = 0; j < width; j++) {
+			cur = format_nchannels * ((height - i - 1) * width + j);
+			float p = pow((pixels)[cur], powFactor);
+			int pInt = p * 255.0;
+			fprintf(f, "%3d %3d %3d ", pInt, pInt, pInt);
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
+}
+
 void screenshot_ppm_Depth(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels, GLuint tex) {
 	size_t i, j, k, cur;
 	const size_t format_nchannels = 1;
@@ -385,6 +404,9 @@ void RenderSceneGeometry()
 	
 	glDisable(GL_CULL_FACE);
 
+	/*glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
+
 	/*glm::vec3 Camera_Pos;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
@@ -392,8 +414,8 @@ void RenderSceneGeometry()
 	
 	GLuint vertexPositionLocation = glGetAttribLocation(simpleProgram, "position");
 
-	//glm::vec3 cameraPos = glm::vec3(0, 3, -3);
-	glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
+	glm::vec3 cameraPos = glm::vec3(0, 3, -3);
+	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
 
 	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &view[0][0]);
@@ -402,6 +424,7 @@ void RenderSceneGeometry()
 	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 	//glm::mat4 proj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+	
 	glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
 	glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
@@ -431,6 +454,7 @@ void RenderSceneGeometry()
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	model = glm::mat4(1.0f);
+	// model = glm::translate(model, glm::vec3(0, 0, 15));
 	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
 
@@ -561,11 +585,12 @@ void RenderScene()
 
 void RenderShadowMap()
 {
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS);
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
-	
+	/*glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);*/
+
+	/*glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_GREATER);*/
+
 	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 	// glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 
@@ -578,30 +603,19 @@ void RenderShadowMap()
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
 	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
 
-	glm::vec3 cameraPos = glm::vec3(0.0, 8.0, 36);
-	//glm::vec3 cameraPos = glm::vec3(0.0, 3.0, eyez);	
-
-	glMatrixMode(GL_MODELVIEW);
-	/* line 571*/
-	glLoadIdentity();
-	glPushMatrix();
-	glTranslated(0.0, 3.0, eyez);
-	GLfloat viewMatrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix);
-	glPopMatrix();
-
+	glm::vec3 cameraPos = glm::vec3(0.0, 3.0, -3);
+	
 	glm::mat4 model(1.0f);
 	model = glm::translate(model, LightCenter);
-	model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, rotz, glm::vec3(0, 0, 1));
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
 	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
 
-	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + (LightCenter - cameraPos), glm::vec3(0, 1, 0));
-	//glm::mat4 view = glm::make_mat4(viewMatrix);
+	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	
-	glm::mat4 proj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-
-	/*glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);*/
+	float w = 14.35;
+	glm::mat4 proj = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
+	proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 
 	glm::mat4 MVP = proj * view * model;
 
@@ -616,7 +630,8 @@ void RenderShadowMap()
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, -3, 34));
+	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
+	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
 
 	MVP = proj * view * model;
 
@@ -655,7 +670,7 @@ void DebugRender()
 	//GLuint tex = rttTexture;
 	GLuint tex = depthTexture;
 
-	//screenshot_ppm_Depth("output.ppm", 512, 512, pixels, depthTexture);
+	screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 100000);
 
 	// Set textures
 	glActiveTexture(GL_TEXTURE0);
@@ -736,19 +751,19 @@ void draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//RenderScene();
-	//RenderShadowMap();
+	RenderShadowMap();
 	//t16.RenderShadowMap16(depthBuffer, depthProgram);
 	
 	//BiltRender();
-	//DebugRender();
+	DebugRender();
 
-	if (ymode == 0) {
+	/*if (ymode == 0) {
 		RenderSceneGeometry();
 	}
 	else if (ymode == 1) {
 		RenderScene();
 		BiltRender();
-	}
+	}*/
 
 	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
 	glBindTexture(GL_TEXTURE_2D, NULL);
