@@ -94,7 +94,8 @@ float FloorRect[] = {
 	-1.0, 0.0,  1.0
 };
 
-glm::vec3 LightCenter = glm::vec3(0, 6, 32);
+//glm::vec3 LightCenter = glm::vec3(0, 6, 32);
+glm::vec3 LightCenter = glm::vec3(0, 16, 32);
 float newLightRect[18];
 
 struct _demo_speed {
@@ -416,9 +417,10 @@ void RenderSceneGeometryWithShadowMap()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
 	glm::vec3 Camera_Pos;
-	//cameraPitch = -73;
-	//cameraDistance = 50;
-	//cameraYaw = -90;
+	/*cameraPitch = -73;
+	
+	cameraYaw = -90;*/
+	cameraDistance = 100;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
 	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
@@ -564,7 +566,7 @@ void RenderSceneGeometryWithShadowMap()
 
 	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
 	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
-	model = glm::scale(model, glm::vec3(width, height, 1));
+	model = glm::scale(model, glm::vec3(width * 100, height * 100, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
 	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1.0, 0.0, 0.0);
@@ -795,7 +797,7 @@ void RenderShadowMap()
 	//proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 
 	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	view = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	view = glm::lookAt(LightCenter, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	//view_depth = glm::lookAt(LightCenter, glm::vec3(10, 0, 33 + roty), glm::vec3(0, 1, 0));
 	
 	//view = view_depth;
