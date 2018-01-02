@@ -68,6 +68,8 @@ ObjLoader teapot;
 float cameraPitch, cameraYaw, cameraDistance;
 GLubyte *p;
 
+GLfloat pixels[512 * 512];
+
 GLuint location(const GLchar* u) 
 { 
 	// FIXED PROGRAM
@@ -315,7 +317,7 @@ void init(void) {
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);;
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -413,15 +415,18 @@ void RenderSceneGeometryWithShadowMap()
 	/*glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
-	/*glm::vec3 Camera_Pos;
+	glm::vec3 Camera_Pos;
+	//cameraPitch = -73;
+	//cameraDistance = 50;
+	//cameraYaw = -90;
 	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
 	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));*/
+	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
 
 	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
 
-	glm::vec3 cameraPos = glm::vec3(0, 3, -3);
-	//glm::vec3 cameraPos = Camera_Pos;
+	//glm::vec3 cameraPos = glm::vec3(0, 3, -3);
+	glm::vec3 cameraPos = Camera_Pos;
 	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
 
 	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
@@ -431,7 +436,9 @@ void RenderSceneGeometryWithShadowMap()
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
 
 	float w = 14.35;
+	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0); // glm::ortho<float>(-w, w, -w, w, -1000, 2000);
 	glm::mat4 proj_depth = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
+
 	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
@@ -468,9 +475,11 @@ void RenderSceneGeometryWithShadowMap()
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glm::vec3 teapotPosition = glm::vec3(0, 0, -8);
+	//glm::vec3 teapotPosition = glm::vec3(0, 0, 50);
 	model = glm::mat4(1.0f);
 	// model = glm::translate(model, glm::vec3(0, 0, 15));
-	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
+	model = glm::translate(model, teapotPosition);
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
@@ -520,6 +529,50 @@ void RenderSceneGeometryWithShadowMap()
 
 	glDisableVertexAttribArray(vertexPositionLocation);
 	glDisable(GL_BLEND);
+
+	// Debug Draw
+	/*glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(LightCenter.x, LightCenter.y, LightCenter.z);
+	glutSolidCylinder(1, 2, 5, 5);
+	glPopMatrix();*/
+
+	/*
+	*	Draw the Light Rect
+	*/
+
+	model = glm::mat4(1.0f);
+	// Light Center = vec3(0, 6, 32);
+	model = glm::translate(model, glm::vec3(0, 3, -35));
+
+
+	/*
+	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
+	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
+	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);}
+	*/
+
+	/*
+	glm::vec3 v = glm::vec3(0, 1, 0);
+	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
+	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
+
+	v = glm::vec3(0, 0, 1);
+	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
+	*/
+
+	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
+	model = glm::scale(model, glm::vec3(width, height, 1));
+
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1.0, 0.0, 0.0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void RenderSceneGeometry()
@@ -727,24 +780,25 @@ void RenderShadowMap()
 	
 	glUseProgram(depthProgram);
 
-	glm::vec3 cameraPos = glm::vec3(0.0, 3.0, -3);
+	//glm::vec3 cameraPos = glm::vec3(0.0, 3.0, -3);
+	//glm::vec3 cameraPos = glm::vec3(0.0, 3.0, 6);
 		
 	glm::mat4 model(1.0f);
 	glm::mat4 view(1.0f);
 	glm::mat4 proj(1.0f);
 	glm::mat4 MVP(1.0f);
 
-	view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
+	//view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	
 	float w = 14.35;
 	proj = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
 	//proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 
 	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	view = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
 	//view_depth = glm::lookAt(LightCenter, glm::vec3(10, 0, 33 + roty), glm::vec3(0, 1, 0));
 	
-	view = view_depth;
+	//view = view_depth;
 	
 	/*
 	*	Draw the Floor
@@ -759,17 +813,19 @@ void RenderShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
 	glVertexAttribPointer(glGetAttribLocation(depthProgram, "position"), 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 	
 	/*
 	*	Draw the Teapot
 	*/
 
-	glm::vec3 teapotPosition = glm::vec3(10, 0, 33 + roty);
-
+	glm::vec3 teapotPosition = glm::vec3(0, 0, 0);// +LightCenter;
+	//glm::vec3 teapotPosition = glm::vec3(0, 0, -8);
+	//glm::vec3 teapotPosition = glm::vec3(0, 0, 50);
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, teapotPosition);
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
+	model = glm::rotate(model, glm::radians(15.0f), glm::vec3(1, 0, 0) );
 
 	MVP = proj * view * model;
 
@@ -783,10 +839,12 @@ void RenderShadowMap()
 	glDisableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
 
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
 	glUseProgram(NULL);
+
+	
 }
 
-GLfloat pixels[512 * 512];
 
 void DebugRender()
 {
@@ -796,7 +854,7 @@ void DebugRender()
 	GLuint tex = depthTexture;
 
 	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 100000);
-	screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
+	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
 
 	// Set textures
 	glActiveTexture(GL_TEXTURE0);
@@ -883,6 +941,8 @@ void draw() {
 	//BiltRender();
 	//DebugRender();
 
+	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
+
 	RenderSceneGeometryWithShadowMap();
 	
 	/*if (ymode == 0) {
@@ -966,7 +1026,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case 'z': {twoSided = !twoSided;	break; }
 	case 'q': {spin_mirror = !spin_mirror; break; }
 	case 'e': {roty = 0.0; rotz = 0.0; height = 8.0; width = 8.0; break; }
-	case 'm': {mode = (mode + 1) % 3; break; }
+	//case 'm': {mode = (mode + 1) % 3; break; }
 	case 'o': {if (demo_speed.speed < 10) { ++demo_speed.speed; }break; }
 	case 'p': {if (demo_speed.speed > 1) { --demo_speed.speed; }break; }
 	case '[': {spin_mode_toggle = !spin_mode_toggle; break; }
@@ -988,6 +1048,25 @@ void keyboard(unsigned char key, int uni_name, int y) {
 		std::cout << cameraYaw << std::endl;
 		cameraYaw -= 1; break;
 	}
+
+	//case 'c': {
+	//	LightCenter.x += 1;
+	//}
+	//case 'v': {
+	//	LightCenter.x -= 1;
+	//}
+	//case 'b': {
+	//	LightCenter.y += 1;
+	//}
+	//case 'n': {
+	//	LightCenter.y -= 1;
+	//}
+	//case 'm': {
+	//	LightCenter.z += 1;
+	//}
+	//case ',': {
+	//	LightCenter.z -= 1;
+	//}
 
 	case 'x': {
 		ymode++;
