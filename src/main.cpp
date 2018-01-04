@@ -18,7 +18,6 @@
 #include "data.hpp"
 #include "Reader.hpp"
 #include "ObjLoader.hpp"
-//#include "../include/controls.hpp"
 
 #include "tutorial16.hpp"
 
@@ -234,7 +233,6 @@ float initialFoV = 45.0f;
 float speed = 3.0f; // 3 units / second
 float mouseSpeed = 0.005f;
 
-
 void computeMatricesFromInputs() {
 
 	// glfwGetTime is called only once, the first time this function is called
@@ -246,7 +244,6 @@ void computeMatricesFromInputs() {
 	//float deltaTime = 0.001;
 
 	// Get mouse position
-
 	//glfwGetCursorPos(window, &xpos, &ypos);
 
 	// Reset mouse position for next frame
@@ -305,6 +302,29 @@ void computeMatricesFromInputs() {
 	//lastTime = currentTime;
 }
 
+float shadowBias = 0.000100001;
+void SpecialInput(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		shadowBias += 0.0001;
+		std::cout << shadowBias << std::endl;
+		break;
+	case GLUT_KEY_DOWN:
+		shadowBias -= 0.0001;
+		std::cout << shadowBias << std::endl;
+		//do something here
+		break;
+	case GLUT_KEY_LEFT:
+		//do something here
+		break;
+	case GLUT_KEY_RIGHT:
+		//do something here
+		break;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
@@ -333,6 +353,7 @@ int main(int argc, char *argv[])
 	glutMouseWheelFunc(mouseWheel);
 	glutPassiveMotionFunc(My_mouse_routine);
 	glutSetCursor(GLUT_CURSOR_NONE);
+	glutSpecialFunc(SpecialInput);
 
 
 	timebase = glutGet(GLUT_ELAPSED_TIME);
@@ -515,7 +536,7 @@ void init(void) {
 
 void RenderSceneGeometryWithShadowMap()
 {
-
+	// update view matrix
 	computeMatricesFromInputs();
 
 	GLuint currentProgram = shadowProgram;
@@ -571,6 +592,8 @@ void RenderSceneGeometryWithShadowMap()
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	//glUniform1i(glGetUniformLocation(currentProgram, "shadowMap"), depthTexture);
 
+	glUniform1f(glGetUniformLocation(currentProgram, "bias"), shadowBias);
+
 	glm::mat4 model(1.0f);
 
 	/*
@@ -594,7 +617,7 @@ void RenderSceneGeometryWithShadowMap()
 	//glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glm::vec3 teapotPosition = glm::vec3(0, 0, -8);
+	glm::vec3 teapotPosition = glm::vec3(0, 0, 0);
 	//glm::vec3 teapotPosition = glm::vec3(0, 0, 50);
 	model = glm::mat4(1.0f);
 	// model = glm::translate(model, glm::vec3(0, 0, 15));

@@ -117,7 +117,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\shader_lib\shader.h" />
-    <ClInclude Include="include\controls.hpp" />
     <ClInclude Include="src\data.hpp" />
     <ClInclude Include="src\ObjLoader.hpp" />
     <ClInclude Include="src\Reader.hpp" />
@@ -138,7 +137,6 @@
     <None Include="shaders\simple.vs" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="include\controls.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\tutorial16.hpp" />
   </ItemGroup>

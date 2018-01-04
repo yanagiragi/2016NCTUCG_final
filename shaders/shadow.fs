@@ -2,6 +2,7 @@
 
 uniform vec3 color;
 uniform sampler2DShadow shadowMap;
+uniform float bias;
 
 out vec4 outColor;
 //in vec3 ShadowCoord;
@@ -64,7 +65,7 @@ void main()
 
 	float visibility=1.0;
 	
-	float bias = 0.005;
+	
 
 	for (int i=0; i<4; i++)
 	{
