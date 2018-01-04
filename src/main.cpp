@@ -437,11 +437,13 @@ void RenderSceneGeometryWithShadowMap()
 	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
 
-	float w = 14.35;
+	//float w = 14.35;
+	float w = 20.0;
 	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0); // glm::ortho<float>(-w, w, -w, w, -1000, 2000);
 	glm::mat4 proj_depth = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
 
-	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0, 1, 0));
+	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, -0.15, -1.0), glm::vec3(0, 1, 0));
+	//glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0,0,-8), glm::vec3(0, 1, 0));
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
 
@@ -636,7 +638,7 @@ void RenderSceneGeometry()
 
 	model = glm::mat4(1.0f);
 	// model = glm::translate(model, glm::vec3(0, 0, 15));
-	model = glm::translate(model, glm::vec3(10, 0, 33 + roty));
+	model = glm::translate(model, glm::vec3(10, 0, 33));
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
@@ -792,12 +794,14 @@ void RenderShadowMap()
 
 	//view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
 	
-	float w = 14.35;
+	//float w = 14.35;
+	float w = 20.0f;
 	proj = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
 	//proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
 
 	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	view = glm::lookAt(LightCenter, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	//view = glm::lookAt(LightCenter, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	view = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, -0.15, -1.0), glm::vec3(0, 1, 0));
 	//view_depth = glm::lookAt(LightCenter, glm::vec3(10, 0, 33 + roty), glm::vec3(0, 1, 0));
 	
 	//view = view_depth;
@@ -827,7 +831,7 @@ void RenderShadowMap()
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, teapotPosition);
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
-	model = glm::rotate(model, glm::radians(15.0f), glm::vec3(1, 0, 0) );
+	//model = glm::rotate(model, glm::radians(15.0f), glm::vec3(1, 0, 0) );
 
 	MVP = proj * view * model;
 
@@ -1046,7 +1050,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 		std::cout << cameraYaw << std::endl;
 		cameraYaw += 1; break;
 	}
-	case '\'': {
+	case ',': {
 		std::cout << cameraYaw << std::endl;
 		cameraYaw -= 1; break;
 	}
