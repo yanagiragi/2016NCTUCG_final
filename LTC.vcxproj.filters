@@ -36,6 +36,9 @@
     <ClInclude Include="src\Utils.hpp">
       <Filter>原始程式檔</Filter>
     </ClInclude>
+    <ClInclude Include="include\controls.hpp">
+      <Filter>資源檔\標頭檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ltc\ltc.fs">
@@ -80,6 +83,9 @@
       <Filter>原始程式檔</Filter>
     </ClCompile>
     <ClCompile Include="src\tutorial16.hpp">
+      <Filter>原始程式檔</Filter>
+    </ClCompile>
+    <ClCompile Include="include\controls.cpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>

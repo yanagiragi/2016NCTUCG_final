@@ -18,6 +18,7 @@
 #include "data.hpp"
 #include "Reader.hpp"
 #include "ObjLoader.hpp"
+//#include "../include/controls.hpp"
 
 #include "tutorial16.hpp"
 
@@ -200,6 +201,110 @@ void screenshot_ppm_RGB(const char *filename, unsigned int width, unsigned int h
 	fclose(f);
 }
 
+double xpos, ypos;
+
+void My_mouse_routine(int x, int y)
+{
+	/*xpos = ((double)x) / 512.0; 
+	ypos = ((double)y) / 512.0;*/
+	xpos = x;
+	ypos = y;
+}
+
+glm::mat4 ViewMatrix;
+glm::mat4 ProjectionMatrix;
+
+glm::mat4 getViewMatrix() {
+	return ViewMatrix;
+}
+glm::mat4 getProjectionMatrix() {
+	return ProjectionMatrix;
+}
+
+
+// Initial position : on +Z
+glm::vec3 position = glm::vec3(0, 3, eyez);
+// Initial horizontal angle : toward -Z
+float horizontalAngle = 3.14f;
+// Initial vertical angle : none
+float verticalAngle = 0.0f;
+// Initial Field of View
+float initialFoV = 45.0f;
+
+float speed = 3.0f; // 3 units / second
+float mouseSpeed = 0.005f;
+
+
+void computeMatricesFromInputs() {
+
+	// glfwGetTime is called only once, the first time this function is called
+	//static double lastTime = glfwGetTime();
+	position = glm::vec3(0, 3, eyez);
+	// Compute time difference between current and last frame
+	double currentTime = time_of_glut;
+	float deltaTime = float(currentTime - timebase);
+	//float deltaTime = 0.001;
+
+	// Get mouse position
+
+	//glfwGetCursorPos(window, &xpos, &ypos);
+
+	// Reset mouse position for next frame
+	//glfwSetCursorPos(window, 1024/2, 768/2);
+	glutWarpPointer(512 / 2, 512 / 2);
+
+	// Compute new orientation
+	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
+	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
+
+	// Direction : Spherical coordinates to Cartesian coordinates conversion
+	glm::vec3 direction(
+		cos(verticalAngle) * sin(horizontalAngle),
+		sin(verticalAngle),
+		cos(verticalAngle) * cos(horizontalAngle)
+	);
+
+	// Right vector
+	glm::vec3 right = glm::vec3(
+		sin(horizontalAngle - 3.14f / 2.0f),
+		0,
+		cos(horizontalAngle - 3.14f / 2.0f)
+	);
+
+	// Up vector
+	glm::vec3 up = glm::cross(right, direction);
+
+	// Move forward
+	/*if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		position += direction * deltaTime * speed;
+	}
+	// Move backward
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		position -= direction * deltaTime * speed;
+	}
+	// Strafe right
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		position += right * deltaTime * speed;
+	}
+	// Strafe left
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		position -= right * deltaTime * speed;
+	}*/
+
+	float FoV = initialFoV;// - 5 * glfwGetMouseWheel(); // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
+
+	// Projection matrix : 45?Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	ProjectionMatrix = glm::perspective(glm::radians(FoV), 1.0f, 0.0008f, 1000.0f);	// Camera matrix
+	ViewMatrix = glm::lookAt(
+		position,				// Camera is here
+		position + direction,	// and looks here : at the same position, plus "direction"
+		up						// Head is up (set to 0,-1,0 to look upside-down)
+	);
+
+	// For the next frame, the "last time" will be "now"
+	//lastTime = currentTime;
+}
+
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
@@ -226,12 +331,17 @@ int main(int argc, char *argv[])
 	glutIdleFunc(idle);
 	glutKeyboardFunc(keyboard);
 	glutMouseWheelFunc(mouseWheel);
+	glutPassiveMotionFunc(My_mouse_routine);
+	glutSetCursor(GLUT_CURSOR_NONE);
+
 
 	timebase = glutGet(GLUT_ELAPSED_TIME);
 	glutMainLoop();
 
 	return 0;
 }
+
+
 
 void init(void) {
 	/* line 171 */
@@ -405,6 +515,9 @@ void init(void) {
 
 void RenderSceneGeometryWithShadowMap()
 {
+
+	computeMatricesFromInputs();
+
 	GLuint currentProgram = shadowProgram;
 
 	glUseProgram(currentProgram);
@@ -431,10 +544,12 @@ void RenderSceneGeometryWithShadowMap()
 	glm::vec3 cameraPos = Camera_Pos;
 	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
 
-	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
+	//glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
+	glm::mat4 view = getViewMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &view[0][0]);
 
-	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
+	//glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
+	glm::mat4 proj = getProjectionMatrix();
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
 
 	//float w = 14.35;
@@ -851,7 +966,6 @@ void RenderShadowMap()
 	
 }
 
-
 void DebugRender()
 {
 	glUseProgram(debugProgram);
@@ -1105,3 +1219,4 @@ void mouseWheel(int wheel, int direction, int uni_name, int y) {
 	else	eyez -= 1.0;
 }
 void idle(void) { glutPostRedisplay(); }
+
