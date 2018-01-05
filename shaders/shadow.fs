@@ -72,7 +72,6 @@ void main()
 	float cosAlpha = clamp( dot( E,R ), 0,1 );
 
 	float visibility=1.0;
-	float bias = 0.008;
 
 	for (int i=0; i<4; i++)
 	{
@@ -98,7 +97,7 @@ void main()
 		// Specular : reflective highlight, like a mirror
 		visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5);
 
-	outColor = vec4(color , 1.0) * visibility;
+	outColor = vec4(color , 1.0);
 	//outColor = vec4(debugColor , 1.0) * visibility;
 	
 }

@@ -266,7 +266,7 @@ void draw()
 	computeMatricesFromInputs();
 
 	t16.lightInvDir = LightCenter;
-	//t16.shadowBias = shadowBias;
+	t16.bias = shadowBias;
 	//RenderScene();
 
 

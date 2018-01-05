@@ -70,9 +70,10 @@ namespace
 		-1.0, 0.0,  1.0
 	};
 
-	//glm::vec3 LightCenter = glm::vec3(0, 6, 32);
+	//glm::vec3 LightCenter = glm::vec3(0, 6, 32); 
 	//glm::vec3 LightCenter = glm::vec3(0, 16, 32);
 	glm::vec3 LightCenter = glm::vec3(0, 9, -11);
+	//glm::vec3 LightCenter = glm::vec3(0.5, 2, 2);
 	
 	float newLightRect[18];
 
@@ -136,10 +137,10 @@ void SpecialInput(int key, int x, int y)
 	switch (key)
 	{
 	case GLUT_KEY_UP:
-		shadowBias += 0.0001;
+		shadowBias += 0.001;
 		break;
 	case GLUT_KEY_DOWN:
-		shadowBias -= 0.0001;
+		shadowBias -= 0.001;
 		break;
 	case GLUT_KEY_LEFT:
 		scale += 0.1;

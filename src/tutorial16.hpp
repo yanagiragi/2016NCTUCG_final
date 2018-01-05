@@ -25,6 +25,7 @@ class tutorial16
 	public:
 
 	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
+	float bias;
 
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
@@ -291,7 +292,8 @@ class tutorial16
 		GLuint dProjectionMatrixID = glGetUniformLocation(currentProgram, "proj_depth");
 		GLuint dViewMatrixID = glGetUniformLocation(currentProgram, "view_depth");
 		GLuint ShadowMapID = glGetUniformLocation(currentProgram, "shadowMap");
-		GLuint debugColorID = glGetUniformLocation(currentProgram, "debugColor");		
+		GLuint debugColorID = glGetUniformLocation(currentProgram, "debugColor");
+		GLuint biasID = glGetUniformLocation(currentProgram, "bias");
 		GLuint lightInvDirID = glGetUniformLocation(currentProgram, "LightInvDirection_worldspace");
 
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
@@ -301,6 +303,7 @@ class tutorial16
 		glUniformMatrix4fv(dProjectionMatrixID, 1, GL_FALSE, &depthProjectionMatrix[0][0]);
 		glUniform3f(debugColorID, 1, 0, 0);
 		glUniform3f(lightInvDirID, lightInvDir.x, lightInvDir.y, lightInvDir.z);
+		glUniform1f(biasID, bias);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthTexture);
