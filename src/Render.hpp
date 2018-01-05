@@ -91,7 +91,7 @@ void RenderSceneGeometryWithShadowMap()
 	model = glm::scale(model, glm::vec3(50, 1, 90));
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "Ccolor"), 0.0, 1.0, 0.0);
+	glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 0.0, 1.0, 0.0);
 	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
@@ -112,7 +112,7 @@ void RenderSceneGeometryWithShadowMap()
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
 
-	glUniform3f(glGetUniformLocation(currentProgram, "Ccolor"), 0.0, 0.0, 1.0);
+	glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 0.0, 0.0, 1.0);
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
@@ -126,7 +126,7 @@ void RenderSceneGeometryWithShadowMap()
 	model = glm::translate(model, teapotPosition);
 	model = glm::scale(model, glm::vec3(1, 1, 1) * 3.0f);
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "Ccolor"), 0.0, 1.0, 1.0);
+	glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 0.0, 1.0, 1.0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -163,7 +163,7 @@ void RenderSceneGeometryWithShadowMap()
 	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "Ccolor"), 1.0, 0.0, 0.0);
+	glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 0.0, 0.0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -189,7 +189,7 @@ void RenderSceneGeometryWithShadowMap()
 	model = glm::scale(model, glm::vec3(width * 100, height * 100, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "Ccolor"), 1, 1, 1);
+	glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1, 1, 1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -242,7 +242,7 @@ void RenderSceneGeometry()
 	model = glm::scale(model, glm::vec3(50, 1, 90));
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 0.0, 1.0, 0.0);
+	glUniform3f(glGetUniformLocation(simpleProgram, "debugColor"), 0.0, 1.0, 0.0);
 	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
@@ -261,7 +261,7 @@ void RenderSceneGeometry()
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
 
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 0.0, 0.0, 1.0);
+	glUniform3f(glGetUniformLocation(simpleProgram, "debugColor"), 0.0, 0.0, 1.0);
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
@@ -297,7 +297,7 @@ void RenderSceneGeometry()
 	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 0.0, 0.0);
+	glUniform3f(glGetUniformLocation(simpleProgram, "debugColor"), 1.0, 0.0, 0.0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);

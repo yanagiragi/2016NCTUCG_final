@@ -1,6 +1,6 @@
 #version 440
 
-uniform vec3 Ccolor;
+uniform vec3 debugColor;
 uniform sampler2DShadow shadowMap;
 //uniform sampler2D shadowMap;
 uniform float bias;
@@ -81,7 +81,7 @@ void main()
 		visibility -= 0.2 * ( 1.0 - texture( shadowMap, uv ));
 	}
 
-	outColor = vec4(Ccolor , 1.0) * visibility;
+	outColor = vec4(debugColor , 1.0) * visibility;
 	
 	//vec2 UVxy = ShadowCoord.xy;
 	//vec3 uv = vec3(
@@ -101,5 +101,5 @@ void main()
 	//}*/
 	//outColor = vec4(0, 0, uv.z , 1.0);
 	//outColor = vec4(ShadowCoord);
-	//outColor = vec4(Ccolor, 1.0);
+	outColor = vec4(debugColor, 1.0);
 }

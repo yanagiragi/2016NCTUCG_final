@@ -1,5 +1,5 @@
-#ifndef INPUT_HPP
-#define INPUT_HPP
+#ifndef _INPUT_HPP
+#define _INPUT_HPP
 
 #include "tutorial16.hpp"
 
@@ -19,7 +19,7 @@ struct _parameters
 {
 	int screenWidth;
 	int screenHeight;
-}parameters;
+};
 
 namespace 
 {
@@ -34,6 +34,8 @@ namespace
 	float lightIntensity = 4.0, roughness = 0.02;
 	
 	struct d_s_color dsColor = { { 1,1,1 },{ 1,1,1 } };
+	struct _parameters parameters;
+
 	bool twoSided = false;
 	bool spin_mirror = false;
 	int mode = 0;
@@ -46,7 +48,6 @@ namespace
 	GLubyte *p;
 
 	GLfloat pixels[512 * 512];
-
 
 
 	float lightRect[] = {
