@@ -304,15 +304,23 @@ void updateFrameCount()
 {
 	frame++;
 	time_of_glut = glutGet(GLUT_ELAPSED_TIME);
-	if (time_of_glut - timebase > 1000) {
+	
+	if (time_of_glut - timebase > 1000) 
+	{
 		fps = frame / ((double)(time_of_glut - timebase) / 1000.0);
 		execTime = 1.0 / fps * 1000;
 		timebase = time_of_glut;
 		frame = 0;
-		if (spin_mirror) {
-			if (spin_mode_toggle)
+		
+		if (spin_mirror) 
+		{
+			if (spin_mode_toggle) 
+			{
 				++demo_speed.mode_counter;
-			if (demo_speed.mode_counter > 1) {
+			}
+
+			if (demo_speed.mode_counter > 1) 
+			{
 				mode = (mode + 1) % 3;
 				demo_speed.mode_counter = 0;
 			}
