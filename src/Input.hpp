@@ -71,7 +71,9 @@ namespace
 	};
 
 	//glm::vec3 LightCenter = glm::vec3(0, 6, 32);
-	glm::vec3 LightCenter = glm::vec3(0, 16, 32);
+	//glm::vec3 LightCenter = glm::vec3(0, 16, 32);
+	glm::vec3 LightCenter = glm::vec3(0.5f, 2, 2);
+	
 	float newLightRect[18];
 
 	struct _demo_speed {
@@ -116,6 +118,7 @@ namespace
 	float speed = 3.0f; // 3 units / second
 	float mouseSpeed = 0.00005f;
 
+	float scale = 5;
 
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
@@ -139,8 +142,10 @@ void SpecialInput(int key, int x, int y)
 		shadowBias -= 0.0001;
 		break;
 	case GLUT_KEY_LEFT:
+		scale += 0.1;
 		break;
 	case GLUT_KEY_RIGHT:
+		scale -= 0.1;
 		break;
 	}
 }
@@ -214,7 +219,8 @@ void keyboard(unsigned char key, int uni_name, int y) {
 			<< "\nCamera eyeZ = " << eyez
 			<< "\nCamera horizontalAngle = " << horizontalAngle
 			<< "\nCamera verticalAngle = " << verticalAngle
-			<< "\Shadow Bias = " << shadowBias
+			<< "\nShadow Bias = " << shadowBias
+			<< "\nScale = " << scale
 			<< "\n Light Center = (" << LightCenter.x << ", " << LightCenter.y << ", " << LightCenter.z << ")"
 			<< "\n========================================\n" << std::endl;
 

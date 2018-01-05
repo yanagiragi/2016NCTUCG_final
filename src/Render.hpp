@@ -88,7 +88,7 @@ void RenderSceneGeometryWithShadowMap()
 
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(0, 0, 0));
-	model = glm::scale(model, glm::vec3(50, 1, 90));
+	model = glm::scale(model, glm::vec3(1,1,1) * 10.1f);
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
 	glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 0.0, 1.0, 0.0);
@@ -108,7 +108,7 @@ void RenderSceneGeometryWithShadowMap()
 	model = glm::mat4(1.0f);
 	// model = glm::translate(model, glm::vec3(0, 0, 15));
 	model = glm::translate(model, teapotPosition);
-	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
+	model = glm::scale(model, glm::vec3(1, 1, 1) * 2.6f);
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
 
@@ -131,7 +131,7 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+	//glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
 
 	/*
 	*	Draw the Light Rect
@@ -168,7 +168,7 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(vertexPositionLocation);
 	glDisable(GL_BLEND);
