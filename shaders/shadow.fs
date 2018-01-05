@@ -101,5 +101,5 @@ void main()
 	//}*/
 	//outColor = vec4(0, 0, uv.z , 1.0);
 	//outColor = vec4(ShadowCoord);
-	outColor = vec4(debugColor, 1.0);
+	//outColor = vec4(debugColor, 1.0);
 }
