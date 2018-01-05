@@ -7,7 +7,14 @@ uniform float bias;
 
 out vec4 outColor;
 //in vec3 ShadowCoord;
+
 in vec4 ShadowCoord;
+in vec2 UV;
+in vec3 Position_worldspace;
+in vec3 Normal_cameraspace;
+in vec3 EyeDirection_cameraspace;
+in vec3 LightDirection_cameraspace;
+
 
 vec2 poissonDisk[16] = vec2[]( 
    vec2( -0.94201624, -0.39906216 ), 
@@ -30,39 +37,39 @@ vec2 poissonDisk[16] = vec2[](
 
 void main() 
 {
-	/*
-	if((gl_FragCoord.z < ShadowCoord.z))
-	{
-		outColor = vec4(0.3,0.3,0.3,1.0);
-		outColor.a = 0.5;
-    }
-    else
-	{
-        outColor = vec4(color , 1.0); //vec4(vec3(pow(gl_FragCoord.z,10000)),1.0);	
-	}
-	*/
+	
+	// Light emission properties
+	vec3 LightColor = vec3(1,1,1);
+	float LightPower = 1.0f;
+	
+	// Material properties
+	vec3 MaterialDiffuseColor = debugColor.rgb;
+	vec3 MaterialAmbientColor = vec3(0.1,0.1,0.1) * MaterialDiffuseColor;
+	vec3 MaterialSpecularColor = vec3(0.3,0.3,0.3);
 
-	//vec4 depthVec4 = texture( shadowMap, ShadowCoord.xy );
+	// Distance to the light
+	//float distance = length( LightPosition_worldspace - Position_worldspace );
 
-	//float depth = depthVec4.z / depthVec4.w;
-
-	// depth = (depth + 1.0) / 2.0;
-
-	/*if ( depth  <  ShadowCoord.z )
-	{
-		outColor = vec4(0.3,0.3,0.3,1.0);
-    }
-    else
-	{
-	    outColor = vec4(color , 1.0); //vec4(vec3(pow(gl_FragCoord.z,10000)),1.0);	
-	}
-    
-	if(depth == 1)
-	{
-		
-	    //outColor = vec4(color , 1.0); //vec4(vec3(pow(gl_FragCoord.z,10000)),1.0);	
-		//outColor = vec4(vec3(pow(depth,10000)),1.0);	
-	}*/
+	// Normal of the computed fragment, in camera space
+	vec3 n = normalize( Normal_cameraspace );
+	// Direction of the light (from the fragment to the light)
+	vec3 l = normalize( LightDirection_cameraspace );
+	// Cosine of the angle between the normal and the light direction, 
+	// clamped above 0
+	//  - light is at the vertical of the triangle -> 1
+	//  - light is perpendiular to the triangle -> 0
+	//  - light is behind the triangle -> 0
+	float cosTheta = clamp( dot( n,l ), 0,1 );
+	
+	// Eye vector (towards the camera)
+	vec3 E = normalize(EyeDirection_cameraspace);
+	// Direction in which the triangle reflects the light
+	vec3 R = reflect(-l,n);
+	// Cosine of the angle between the Eye vector and the Reflect vector,
+	// clamped to 0
+	//  - Looking into the reflection -> 1
+	//  - Looking elsewhere -> < 1
+	float cosAlpha = clamp( dot( E,R ), 0,1 );
 
 	float visibility=1.0;
 	float bias = 0.008;
@@ -80,26 +87,18 @@ void main()
 		);
 		visibility -= 0.2 * ( 1.0 - texture( shadowMap, uv ));
 	}
-
-	outColor = vec4(debugColor , 1.0) * visibility;
 	
-	//vec2 UVxy = ShadowCoord.xy;
-	//vec3 uv = vec3(
-	//	(1- UVxy.x) / 2.0,
-	//	(1- UVxy.y) / 2.0,
-	//	(1 - (ShadowCoord.z-bias)/ShadowCoord.w) / 2.0
-	//);
+	//visibility = 1.0;
 
-	//float d  = 1.0 - texture( shadowMap, vec3(ShadowCoord.xy , uv));
+	vec3 color = 
+		// Ambient : simulates indirect lighting
+		MaterialAmbientColor +
+		// Diffuse : "color" of the object
+		visibility * MaterialDiffuseColor * LightColor * LightPower * cosTheta +
+		// Specular : reflective highlight, like a mirror
+		visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5);
 
-	//d  = 1 - ShadowCoord.z;
-	//d /= 2.0;
-	//outColor = vec4(d, d, d , 1.0);
+	outColor = vec4(color , 1.0) * visibility;
+	//outColor = vec4(debugColor , 1.0) * visibility;
 	
-	///*if(d > 0.5){
-	//	outColor = vec4(1, 0, 0, 1.0);
-	//}*/
-	//outColor = vec4(0, 0, uv.z , 1.0);
-	//outColor = vec4(ShadowCoord);
-	//outColor = vec4(debugColor, 1.0);
 }

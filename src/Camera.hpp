@@ -14,7 +14,7 @@ void computeMatricesFromInputs() {
 	// glfwGetTime is called only once, the first time this function is called
 	//static double lastTime = glfwGetTime();
 	//position = glm::vec3(0, 3, eyez);
-	position = glm::vec3(0, 10, 30);
+	position = glm::vec3(0, 10, eyez);
 	//position = glm::vec3(14,6,4);
 
 	// Compute time difference between current and last frame

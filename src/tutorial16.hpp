@@ -36,6 +36,8 @@ class tutorial16
 	std::vector<glm::vec3> indexed_normals;
 
 	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
 	GLuint elementbuffer;
 
 	// Constructor
@@ -183,13 +185,13 @@ class tutorial16
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
 
-		/*glGenBuffers(1, &uvbuffer);
+		glGenBuffers(1, &uvbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
 		glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
 
 		glGenBuffers(1, &normalbuffer);
 		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-		glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);*/
+		glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
 
 		glGenBuffers(1, &elementbuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
@@ -290,6 +292,7 @@ class tutorial16
 		GLuint dViewMatrixID = glGetUniformLocation(currentProgram, "view_depth");
 		GLuint ShadowMapID = glGetUniformLocation(currentProgram, "shadowMap");
 		GLuint debugColorID = glGetUniformLocation(currentProgram, "debugColor");		
+		GLuint lightInvDirID = glGetUniformLocation(currentProgram, "LightInvDirection_worldspace");
 
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
@@ -297,6 +300,7 @@ class tutorial16
 		glUniformMatrix4fv(dViewMatrixID, 1, GL_FALSE, &depthViewMatrix[0][0]);
 		glUniformMatrix4fv(dProjectionMatrixID, 1, GL_FALSE, &depthProjectionMatrix[0][0]);
 		glUniform3f(debugColorID, 1, 0, 0);
+		glUniform3f(lightInvDirID, lightInvDir.x, lightInvDir.y, lightInvDir.z);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthTexture);
@@ -312,6 +316,30 @@ class tutorial16
 			GL_FALSE,           // normalized?
 			0,                  // stride
 			(void*)0            // array buffer offset
+		);
+
+		// 2nd attribute buffer : UVs
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glVertexAttribPointer(
+			1,                                // attribute
+			2,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// 3rd attribute buffer : normals
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			2,                                // attribute
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
 		);
 
 		// Index buffer

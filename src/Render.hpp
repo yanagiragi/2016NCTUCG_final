@@ -17,7 +17,7 @@ GLuint location(const GLchar* u)
 
 void RenderSceneGeometryWithShadowMap()
 {
-	GLuint currentProgram = shadowProgram;
+	GLuint currentProgram = debugProgram;
 
 	glUseProgram(currentProgram);
 
@@ -168,7 +168,7 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(vertexPositionLocation);
 	glDisable(GL_BLEND);

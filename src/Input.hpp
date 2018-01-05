@@ -72,7 +72,7 @@ namespace
 
 	//glm::vec3 LightCenter = glm::vec3(0, 6, 32);
 	//glm::vec3 LightCenter = glm::vec3(0, 16, 32);
-	glm::vec3 LightCenter = glm::vec3(0.5f, 2, 2);
+	glm::vec3 LightCenter = glm::vec3(0, 9, -11);
 	
 	float newLightRect[18];
 

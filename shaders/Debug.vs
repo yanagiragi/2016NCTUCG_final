@@ -1,12 +1,23 @@
-#version 330 core
+#version 440
 
-// Input vertex data, different for all executions of this shader.
-layout(location = 0) in vec3 vertexPosition_modelspace;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 proj;
+uniform mat4 proj_depth;
+uniform mat4 view_depth;
+uniform mat4 DepthBiasMVP;
 
-// Output data ; will be interpolated for each fragment.
-out vec2 UV;
+layout(location = 0) in vec3 position;
 
-void main(){
-	gl_Position =  vec4(vertexPosition_modelspace,1);
-	UV = (vertexPosition_modelspace.xy+vec2(1,1))/2.0;
+out vec4 ShadowCoord;
+mat4 biasMatrix = mat4( 0.5, 0.0, 0.0, 0.0,
+						0.0, 0.5, 0.0, 0.0,
+						0.0, 0.0, 0.5, 0.0,
+						0.5, 0.5, 0.5, 1.0);
+
+void main() 
+{
+	gl_Position = proj * view * model * vec4(position, 1.0);
+	
+	ShadowCoord = biasMatrix * proj_depth * view_depth * model * vec4(position, 1.0);
 }
