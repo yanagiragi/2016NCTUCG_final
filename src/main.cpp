@@ -247,13 +247,16 @@ void computeMatricesFromInputs() {
 	//glfwGetCursorPos(window, &xpos, &ypos);
 
 	// Reset mouse position for next frame
-	//glfwSetCursorPos(window, 1024/2, 768/2);
-	glutWarpPointer(512 / 2, 512 / 2);
+	// glfwSetCursorPos(window, 1024/2, 768/2);
+	// glutWarpPointer(512 / 2, 512 / 2);
 
 	// Compute new orientation
 	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
 	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
 
+	horizontalAngle = 0.0199888;
+	verticalAngle = 6.45002;
+		
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
 		cos(verticalAngle) * sin(horizontalAngle),
@@ -550,6 +553,8 @@ void RenderSceneGeometryWithShadowMap()
 	/*glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
+	//screenshot_ppm_Depth("output.ppm", 512, 512, pixels, depthTexture);
+
 	glm::vec3 Camera_Pos;
 	/*cameraPitch = -73;
 	
@@ -590,7 +595,7 @@ void RenderSceneGeometryWithShadowMap()
 
 	glActiveTexture(0);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	//glUniform1i(glGetUniformLocation(currentProgram, "shadowMap"), depthTexture);
+	glUniform1i(glGetUniformLocation(currentProgram, "shadowMap"), depthTexture);
 
 	glUniform1f(glGetUniformLocation(currentProgram, "bias"), shadowBias);
 
@@ -630,7 +635,22 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+	//glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+
+	/*
+	*	Draw Another Teapot
+	*/
+	teapotPosition = glm::vec3(3, 0, -5);
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, teapotPosition);
+	model = glm::scale(model, glm::vec3(1, 1, 1) * 3.0f);
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform3f(glGetUniformLocation(currentProgram, "color"), 0.0, 1.0, 1.0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
+	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+	glEnableVertexAttribArray(vertexPositionLocation);
+	//glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
 
 	/*
 	*	Draw the Light Rect
@@ -680,41 +700,20 @@ void RenderSceneGeometryWithShadowMap()
 	glPopMatrix();*/
 
 	/*
-	*	Draw the Light Rect
+	*	Draw the Super Big Light Rect
 	*/
 
 	model = glm::mat4(1.0f);
-	// Light Center = vec3(0, 6, 32);
 	model = glm::translate(model, glm::vec3(0, 3, -35));
-
-
-	/*
-	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
-	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
-	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);}
-	*/
-
-	/*
-	glm::vec3 v = glm::vec3(0, 1, 0);
-	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
-	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
-
-	v = glm::vec3(0, 0, 1);
-	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
-	*/
-
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
 	model = glm::scale(model, glm::vec3(width * 100, height * 100, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1.0, 0.0, 0.0);
+	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1, 1, 1);
 
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void RenderSceneGeometry()

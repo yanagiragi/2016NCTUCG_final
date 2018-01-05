@@ -82,5 +82,15 @@ void main()
 	}
 
 	outColor = vec4(color , 1.0) * visibility;
+	vec2 UVxy = ShadowCoord.xy;
+	vec3 uv = vec3(
+		UVxy.x,
+		UVxy.y,
+		(ShadowCoord.z-bias)/ShadowCoord.w
+	);
 
+	float d  = 1.0 - texture( shadowMap, vec3(ShadowCoord.xy , uv));
+	outColor = vec4(d, d, d , 1.0);
+	//outColor = vec4(uv , 1.0);
+	//outColor = vec4(ShadowCoord);
 }
