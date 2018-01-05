@@ -264,6 +264,9 @@ void draw()
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	computeMatricesFromInputs();
+
+	//t16.lightInvDir = LightCenter;
+	//t16.shadowBias = shadowBias;
 	//RenderScene();
 
 

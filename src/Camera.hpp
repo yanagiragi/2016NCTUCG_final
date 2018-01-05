@@ -36,9 +36,9 @@ void computeMatricesFromInputs() {
 	verticalAngle = 6.45002;
 	eyez = -25;*/
 
-	horizontalAngle = 3.1456;
-	verticalAngle = -0.099;
-	eyez = 12;
+	//horizontalAngle = 3.1456;
+	//verticalAngle = -0.099;
+	//eyez = 12;
 
 
 

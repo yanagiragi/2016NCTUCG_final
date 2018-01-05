@@ -23,6 +23,8 @@ struct _parameters
 
 namespace 
 {
+	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
+
 	std::time_t parameters_time;
 
 	int ymode = 0; // special mode for debug
@@ -132,18 +134,13 @@ void SpecialInput(int key, int x, int y)
 	{
 	case GLUT_KEY_UP:
 		shadowBias += 0.0001;
-		std::cout << shadowBias << std::endl;
 		break;
 	case GLUT_KEY_DOWN:
 		shadowBias -= 0.0001;
-		std::cout << shadowBias << std::endl;
-		//do something here
 		break;
 	case GLUT_KEY_LEFT:
-		//do something here
 		break;
 	case GLUT_KEY_RIGHT:
-		//do something here
 		break;
 	}
 }
@@ -173,41 +170,25 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case '[': {spin_mode_toggle = !spin_mode_toggle; break; }
 	case ']': {spin_hw_toggle = !spin_hw_toggle; break; }
 
-	case '.': {
-		std::cout << cameraPitch << std::endl;
-		cameraPitch += 1; break;
+	case 'c': {
+	LightCenter.x += 1; break;
+	}
+	case 'v': {
+	LightCenter.x -= 1; break;
+	}
+	case 'b': {
+	LightCenter.y += 1; break;
+	}
+	case 'n': {
+	LightCenter.y -= 1; break;
+	}
+	case 'm': {
+	LightCenter.z += 1;break;
 	}
 	case '/': {
-		std::cout << cameraPitch << std::endl;
-		cameraPitch -= 1; break;
+	LightCenter.z -= 1;
+	break;
 	}
-	case ';': {
-		std::cout << cameraYaw << std::endl;
-		cameraYaw += 1; break;
-	}
-	case ',': {
-		std::cout << cameraYaw << std::endl;
-		cameraYaw -= 1; break;
-	}
-
-			  //case 'c': {
-			  //	LightCenter.x += 1;
-			  //}
-			  //case 'v': {
-			  //	LightCenter.x -= 1;
-			  //}
-			  //case 'b': {
-			  //	LightCenter.y += 1;
-			  //}
-			  //case 'n': {
-			  //	LightCenter.y -= 1;
-			  //}
-			  //case 'm': {
-			  //	LightCenter.z += 1;
-			  //}
-			  //case ',': {
-			  //	LightCenter.z -= 1;
-			  //}
 
 	case 'x': {
 		ymode++;
@@ -233,6 +214,8 @@ void keyboard(unsigned char key, int uni_name, int y) {
 			<< "\nCamera eyeZ = " << eyez
 			<< "\nCamera horizontalAngle = " << horizontalAngle
 			<< "\nCamera verticalAngle = " << verticalAngle
+			<< "\Shadow Bias = " << shadowBias
+			<< "\n Light Center = (" << LightCenter.x << ", " << LightCenter.y << ", " << LightCenter.z << ")"
 			<< "\n========================================\n" << std::endl;
 
 		//screenshot_ppm_RGB("output.ppm", 512, 512, p);
