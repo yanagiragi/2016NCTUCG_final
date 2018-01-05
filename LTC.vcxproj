@@ -117,9 +117,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\shader_lib\shader.h" />
+    <ClInclude Include="src\Camera.hpp" />
     <ClInclude Include="src\data.hpp" />
+    <ClInclude Include="src\Input.hpp" />
     <ClInclude Include="src\ObjLoader.hpp" />
     <ClInclude Include="src\Reader.hpp" />
+    <ClInclude Include="src\Render.hpp" />
     <ClInclude Include="src\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>

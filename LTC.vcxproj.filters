@@ -36,6 +36,15 @@
     <ClInclude Include="src\Utils.hpp">
       <Filter>原始程式檔</Filter>
     </ClInclude>
+    <ClInclude Include="src\Input.hpp">
+      <Filter>原始程式檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Camera.hpp">
+      <Filter>原始程式檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Render.hpp">
+      <Filter>原始程式檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ltc\ltc.fs">

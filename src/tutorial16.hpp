@@ -332,6 +332,8 @@ class tutorial16
 			
 			//glUniformMatrix4fv(glGetUniformLocation(depthProgram, "DepthBiasMVP"), 1, GL_FALSE, &depthBiasMVP[0][0]);
 
+			ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 0.5f);
+
 			glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 			glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
 			glUniformMatrix4fv(ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);

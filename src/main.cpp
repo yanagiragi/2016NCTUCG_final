@@ -18,320 +18,18 @@
 #include "data.hpp"
 #include "Reader.hpp"
 #include "ObjLoader.hpp"
-
+#include "Input.hpp"
+#include "Camera.hpp"
+#include "Utils.hpp"
+#include "Render.hpp"
 #include "tutorial16.hpp"
 
-#define ROT_STEP 0.01
-#define HEIGHT_WIDTH_STEP 0.5
-#define LIGHT_INTENSITY_STEP 0.5
-#define ROUGHNESS_STEP 0.01
-
-void init(void);
+void Init(void);
 void display(void);
-/*void setClampedTextureState(void);*/
+void draw(void);
+void updateFrameCount();
 void reshape(int width, int height);
-void keyboard(unsigned char key, int uni_name, int y);
-void mouseWheel(int wheel, int direction, int uni_name, int y);
 void idle(void);
-
-GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram;
-GLuint rttFramebuffer, rttTexture, depthTexture;
-int rttFramebuffer_width, rttFramebuffer_height;
-//int depthFramebuffer_width, depthFramebuffer_height;
-GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer;
-struct _parameters 
-{
-	int screenWidth; 
-	int screenHeight; 
-}parameters;
-
-std::time_t parameters_time;
-
-int ymode = 0; // special mode for debug
-
-float eyez = 3.0;
-//float roty = 0.23, rotz = 0.082;
-float roty = 0.0, rotz = 0.0;
-float height = 8.0, width = 8.0;
-float lightIntensity = 4.0, roughness = 0.02;
-struct d_s_color { float dcolor[3], scolor[3]; };
-d_s_color dsColor = { { 1,1,1 },{ 1,1,1 } };
-bool twoSided = false;
-bool spin_mirror = false;
-int mode = 0;
-int frame, time_of_glut, timebase;
-double execTime = 0.0, fps = 0.0;
-float spin_height = 0.01, spin_width = 0.005;
-bool spin_mode_toggle = true, spin_hw_toggle = true;
-ObjLoader teapot;
-float cameraPitch, cameraYaw, cameraDistance;
-GLubyte *p;
-
-GLfloat pixels[512 * 512];
-
-GLuint location(const GLchar* u) 
-{ 
-	// FIXED PROGRAM
-	return glGetUniformLocation(currentProgram, u); 
-}
-
-float lightRect[] = {
-	-1.0, -1.0,  0.0,
-	 1.0, -1.0,  0.0, 
-	-1.0,  1.0,  0.0,
-	 1.0, -1.0,  0.0,
-	 1.0,  1.0,  0.0,
-	-1.0,  1.0,  0.0
-};
-
-float FloorRect[] = {
-	-1.0, 0.0, -1.0,
-	 1.0, 0.0, -1.0,
-	-1.0, 0.0,  1.0,
-	 1.0, 0.0, -1.0,
-	 1.0, 0.0,  1.0,
-	-1.0, 0.0,  1.0
-};
-
-//glm::vec3 LightCenter = glm::vec3(0, 6, 32);
-glm::vec3 LightCenter = glm::vec3(0, 16, 32);
-float newLightRect[18];
-
-struct _demo_speed {
-	int mode_counter;
-	int speed = 3;
-} demo_speed;
-
-//std::map<std::string, GLfloat*> g_params;
-//std::vector<const GLchar*> g_params_names = {
-//	"roty",
-//	"rotz",
-//	"height",
-//	"width",
-//	"intensity",
-//	"roughness",
-//};
-
-tutorial16 t16;
-static const GLfloat g_quad_vertex_buffer_data[] = {
-	-1.0f, -1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-	1.0f,  1.0f, 0.0f,
-};
-
-GLuint quad_vertexbuffer;
-
-void screenshot_ppm_DepthPow(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels, GLuint tex, float powFactor) {
-	size_t i, j, k, cur;
-	const size_t format_nchannels = 1;
-	FILE *f = fopen(filename, "w");
-	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
-	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
-	glGetTextureImage(tex, 0, GL_DEPTH_COMPONENT, GL_FLOAT, sizeof(GLfloat) * width * height, pixels);
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j++) {
-			cur = format_nchannels * ((height - i - 1) * width + j);
-			float p = pow((pixels)[cur], powFactor);
-			int pInt = p * 255.0;
-			fprintf(f, "%3d %3d %3d ", pInt, pInt, pInt);
-		}
-		fprintf(f, "\n");
-	}
-	fclose(f);
-}
-
-void screenshot_ppm_Depth(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels, GLuint tex) {
-	size_t i, j, k, cur;
-	const size_t format_nchannels = 1;
-	FILE *f = fopen(filename, "w");
-	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
-	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
-	glGetTextureImage(tex, 0, GL_DEPTH_COMPONENT, GL_FLOAT, sizeof(GLfloat) * width * height, pixels);
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j++) {
-			cur = format_nchannels * ((height - i - 1) * width + j);
-			float p = (pixels)[cur];
-			int pInt = p * 255.0;
-			fprintf(f, "%3d %3d %3d ", pInt, pInt, pInt);
-		}
-		fprintf(f, "\n");
-	}
-	fclose(f);
-}
-
-void screenshot_ppm_Depth(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels) {
-	size_t i, j, k, cur;
-	const size_t format_nchannels = 1;
-	FILE *f = fopen(filename, "w");
-	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j++) {
-			cur = format_nchannels * ((height - i - 1) * width + j);
-			float p = (pixels)[cur];
-			int pInt = p * 255.0;
-			fprintf(f, "%3d %3d %3d ", pInt, pInt, pInt);
-		}
-		fprintf(f, "\n");
-	}
-	fclose(f);
-}
-
-void screenshot_ppm_RGB(const char *filename, unsigned int width, unsigned int height, GLubyte *pixels) {
-	size_t i, j, k, cur;
-	const size_t format_nchannels = 3;
-	FILE *f = fopen(filename, "w");
-	fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
-	pixels = (GLubyte*)realloc(pixels, format_nchannels * sizeof(GLubyte) * width * height);
-	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-	int sum = 0;
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j++) {
-			cur = format_nchannels * ((height - i - 1) * width + j);
-			fprintf(f, "%3d %3d %3d ", (pixels)[cur], (pixels)[cur + 1], (pixels)[cur + 2]);
-			sum += (int)(pixels)[cur] + (int)(pixels)[cur + 1] + (int)(pixels)[cur + 2];
-		}
-		fprintf(f, "\n");
-	}
-	fclose(f);
-}
-
-double xpos, ypos;
-
-void My_mouse_routine(int x, int y)
-{
-	/*xpos = ((double)x) / 512.0; 
-	ypos = ((double)y) / 512.0;*/
-	xpos = x;
-	ypos = y;
-}
-
-glm::mat4 ViewMatrix;
-glm::mat4 ProjectionMatrix;
-
-glm::mat4 getViewMatrix() {
-	return ViewMatrix;
-}
-glm::mat4 getProjectionMatrix() {
-	return ProjectionMatrix;
-}
-
-
-// Initial position : on +Z
-glm::vec3 position = glm::vec3(0, 3, eyez);
-// Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
-// Initial vertical angle : none
-float verticalAngle = 0.0f;
-// Initial Field of View
-float initialFoV = 45.0f;
-
-float speed = 3.0f; // 3 units / second
-float mouseSpeed = 0.005f;
-
-void computeMatricesFromInputs() {
-
-	// glfwGetTime is called only once, the first time this function is called
-	//static double lastTime = glfwGetTime();
-	//position = glm::vec3(0, 3, eyez);
-	position = glm::vec3(14,6,4);
-
-	// Compute time difference between current and last frame
-	double currentTime = time_of_glut;
-	float deltaTime = float(currentTime - timebase);
-	//float deltaTime = 0.001;
-
-	// Get mouse position
-	//glfwGetCursorPos(window, &xpos, &ypos);
-
-	// Reset mouse position for next frame
-	// glfwSetCursorPos(window, 1024/2, 768/2);
-	glutWarpPointer(512 / 2, 512 / 2);
-
-	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
-	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
-
-	//horizontalAngle = 0.0199888;
-	//verticalAngle = 6.45002;
-	//eyez = -25;
-
-	
-		
-	// Direction : Spherical coordinates to Cartesian coordinates conversion
-	glm::vec3 direction(
-		cos(verticalAngle) * sin(horizontalAngle),
-		sin(verticalAngle),
-		cos(verticalAngle) * cos(horizontalAngle)
-	);
-
-	// Right vector
-	glm::vec3 right = glm::vec3(
-		sin(horizontalAngle - 3.14f / 2.0f),
-		0,
-		cos(horizontalAngle - 3.14f / 2.0f)
-	);
-
-	// Up vector
-	glm::vec3 up = glm::cross(right, direction);
-
-	// Move forward
-	/*if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		position += direction * deltaTime * speed;
-	}
-	// Move backward
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		position -= direction * deltaTime * speed;
-	}
-	// Strafe right
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		position += right * deltaTime * speed;
-	}
-	// Strafe left
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		position -= right * deltaTime * speed;
-	}*/
-
-	float FoV = initialFoV;// - 5 * glfwGetMouseWheel(); // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
-
-	// Projection matrix : 45?Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	ProjectionMatrix = glm::perspective(glm::radians(FoV), 1.0f, 0.0008f, 1000.0f);	// Camera matrix
-	ViewMatrix = glm::lookAt(
-		position,				// Camera is here
-		position + direction,	// and looks here : at the same position, plus "direction"
-		up						// Head is up (set to 0,-1,0 to look upside-down)
-	);
-
-	// For the next frame, the "last time" will be "now"
-	//lastTime = currentTime;
-}
-
-float shadowBias = 0.000100001;
-void SpecialInput(int key, int x, int y)
-{
-	switch (key)
-	{
-	case GLUT_KEY_UP:
-		shadowBias += 0.0001;
-		std::cout << shadowBias << std::endl;
-		break;
-	case GLUT_KEY_DOWN:
-		shadowBias -= 0.0001;
-		std::cout << shadowBias << std::endl;
-		//do something here
-		break;
-	case GLUT_KEY_LEFT:
-		//do something here
-		break;
-	case GLUT_KEY_RIGHT:
-		//do something here
-		break;
-	}
-}
 
 int main(int argc, char *argv[])
 {
@@ -341,15 +39,7 @@ int main(int argc, char *argv[])
 	glutReshapeWindow(512, 512);
 	glewInit();
 
-	///* line 33 js/super_slider.js */
-	//g_params["roty"] = &roty;
-	//g_params["rotz"] = &rotz;
-	//g_params["height"] = &height;
-	//g_params["width"] = &width;
-	//g_params["intensity"] = &lightIntensity;
-	//g_params["roughness"] = &roughness;
-
-	init();
+	Init();
 
 	printf("OpenGL version: %s\n", glGetString(GL_VERSION));
 	printf("GLSL version: %s\n\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -359,7 +49,7 @@ int main(int argc, char *argv[])
 	glutIdleFunc(idle);
 	glutKeyboardFunc(keyboard);
 	glutMouseWheelFunc(mouseWheel);
-	glutPassiveMotionFunc(My_mouse_routine);
+	glutPassiveMotionFunc(mouse);
 	glutSetCursor(GLUT_CURSOR_NONE);
 	glutSpecialFunc(SpecialInput);
 
@@ -370,9 +60,8 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-
-
-void init(void) {
+void Init(void) 
+{
 	/* line 171 */
 	GLuint vertex_shader = createShader("shaders/ltc/ltc.vs", "vertex");
 	GLuint fragment_shader = createShader("shaders/ltc/ltc.fs", "fragment");
@@ -537,605 +226,9 @@ void init(void) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
 }
 
-//void setClampedTextureState() 
-//{
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//}
-
-void RenderSceneGeometryWithShadowMap()
-{
-	// update view matrix
-	computeMatricesFromInputs();
-
-	GLuint currentProgram = shadowProgram;
-
-	glUseProgram(currentProgram);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-
-	glDisable(GL_CULL_FACE);
-
-	/*glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
-
-	//screenshot_ppm_Depth("output.ppm", 512, 512, pixels, depthTexture);
-
-	glm::vec3 Camera_Pos;
-	/*cameraPitch = -73;
-	
-	cameraYaw = -90;*/
-	cameraDistance = 100;
-	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
-	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
-
-	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
-
-	//glm::vec3 cameraPos = glm::vec3(0, 3, -3);
-	glm::vec3 cameraPos = Camera_Pos;
-	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
-
-	//glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
-	glm::mat4 view = getViewMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &view[0][0]);
-
-	//glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
-	glm::mat4 proj = getProjectionMatrix();
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
-
-	//float w = 14.35;
-	float w = 20.0;
-	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0); // glm::ortho<float>(-w, w, -w, w, -1000, 2000);
-	glm::mat4 proj_depth = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
-
-	glm::mat4 view_depth = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, -0.15, -1.0), glm::vec3(0, 1, 0));
-	//glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0,0,-8), glm::vec3(0, 1, 0));
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
-
-	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	//glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0, 1, 0));
-	//glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
-
-	glActiveTexture(0);
-	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-	glUniform1i(glGetUniformLocation(currentProgram, "shadowMap"), depthTexture);
-
-	glUniform1f(glGetUniformLocation(currentProgram, "bias"), shadowBias);
-
-	glm::mat4 model(1.0f);
-
-	/*
-	*	Draw the Floor
-	*/
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, 0, 0));
-	model = glm::scale(model, glm::vec3(50, 1, 90));
-
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "color"), 0.0, 1.0, 0.0);
-	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	/*
-	*	Draw the Teapot
-	*/
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glm::vec3 teapotPosition = glm::vec3(0, 0, 0);
-	//glm::vec3 teapotPosition = glm::vec3(0, 0, 50);
-	model = glm::mat4(1.0f);
-	// model = glm::translate(model, glm::vec3(0, 0, 15));
-	model = glm::translate(model, teapotPosition);
-	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
-
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-
-	glUniform3f(glGetUniformLocation(currentProgram, "color"), 0.0, 0.0, 1.0);
-	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
-
-	/*
-	*	Draw Another Teapot
-	*/
-	teapotPosition = glm::vec3(3, 0, -5);
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, teapotPosition);
-	model = glm::scale(model, glm::vec3(1, 1, 1) * 3.0f);
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "color"), 0.0, 1.0, 1.0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
-
-	/*
-	*	Draw the Light Rect
-	*/
-
-	model = glm::mat4(1.0f);
-	// Light Center = vec3(0, 6, 32);
-	model = glm::translate(model, LightCenter);
-
-
-	/*
-	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
-	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
-	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);}
-	*/
-
-	/*
-	glm::vec3 v = glm::vec3(0, 1, 0);
-	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
-	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
-
-	v = glm::vec3(0, 0, 1);
-	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
-	*/
-
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
-	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
-
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1.0, 0.0, 0.0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(vertexPositionLocation);
-	glDisable(GL_BLEND);
-
-	// Debug Draw
-	/*glPushMatrix();
-	glLoadIdentity();
-	glTranslatef(LightCenter.x, LightCenter.y, LightCenter.z);
-	glutSolidCylinder(1, 2, 5, 5);
-	glPopMatrix();*/
-
-	/*
-	*	Draw the Super Big Light Rect
-	*/
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, 3, -35));
-	model = glm::scale(model, glm::vec3(width * 100, height * 100, 1));
-
-	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(currentProgram, "color"), 1, 1, 1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
-void RenderSceneGeometry()
-{
-	glUseProgram(simpleProgram);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-	
-	glDisable(GL_CULL_FACE);
-
-	/*glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
-
-	/*glm::vec3 Camera_Pos;
-	Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
-	Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-	Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));*/
-	
-	GLuint vertexPositionLocation = glGetAttribLocation(simpleProgram, "position");
-
-	glm::vec3 cameraPos = glm::vec3(0, 3, -3);
-	//glm::vec3 cameraPos = glm::vec3(0, 10, -6); // another view for debugging
-
-	glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view"), 1, GL_FALSE, &view[0][0]);
-
-	//glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);
-	glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
-	//glm::mat4 proj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
-	
-	glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	glm::mat4 view_depth = glm::lookAt(LightCenter, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0, 1, 0));
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "proj_depth"), 1, GL_FALSE, &proj_depth[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "view_depth"), 1, GL_FALSE, &view_depth[0][0]);
-
-	glm::mat4 model(1.0f);
-	
-	/*
-	*	Draw the Floor
-	*/
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, 0, 0));
-	model = glm::scale(model, glm::vec3(50, 1, 90));
-
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 0.0, 1.0, 0.0);	
-	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	/*
-	*	Draw the Teapot
-	*/
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	model = glm::mat4(1.0f);
-	// model = glm::translate(model, glm::vec3(0, 0, 15));
-	model = glm::translate(model, glm::vec3(10, 0, 33));
-	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
-
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
-
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 0.0, 0.0, 1.0);
-	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
-
-	/*
-	*	Draw the Light Rect
-	*/
-	
-	model = glm::mat4(1.0f);
-	// Light Center = vec3(0, 6, 32);
-	model = glm::translate(model, LightCenter);
-
-
-	/*
-	vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
-	vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
-	vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);} 
-	*/
-
-	/*
-	glm::vec3 v = glm::vec3(0, 1, 0);
-	v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
-	glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
-
-	v = glm::vec3(0, 0, 1);
-	v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
-	*/
-	
-	model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
-	model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
-	model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
-
-	glUniformMatrix4fv(glGetUniformLocation(simpleProgram, "model"), 1, GL_FALSE, &model[0][0]);
-	glUniform3f(glGetUniformLocation(simpleProgram, "color"), 1.0, 0.0, 0.0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(vertexPositionLocation);
-	glDisable(GL_BLEND);
-}
-
-void RenderScene()
-{
-	// Load program into GPU
-	glUseProgram(currentProgram);
-	/* line - 566*/
-
-	glMatrixMode(GL_MODELVIEW);
-	/* line 571*/
-	glLoadIdentity();
-	glPushMatrix();
-	glTranslated(0.0, 3.0, eyez);
-	GLfloat view[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, view);
-	glPopMatrix();
-
-	/* line 577*/
-	// Get var locations
-	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
-
-	/* line 583 - 593 */
-	// Set values to program variables
-	//for (const GLchar* x : g_params_names) {
-	//	float value = *(g_params[x]);
-	//	GLuint loc = location(x);
-	//	glUniform1f(loc, value);
-	//}
-
-	glUniform1f(location("roty"), roty);
-	glUniform1f(location("rotz"), rotz);
-	glUniform1f(location("height"), height);
-	glUniform1f(location("width"), width);
-	glUniform1f(location("intensity"), lightIntensity);
-	glUniform1f(location("roughness"), roughness);
-
-	glUniform1i(location("twoSided"), twoSided);
-	glUniform3f(location("dcolor"), dsColor.dcolor[0], dsColor.dcolor[1], dsColor.dcolor[2]);
-	glUniform3f(location("scolor"), dsColor.scolor[0], dsColor.scolor[1], dsColor.scolor[2]);
-	glUniform1i(location("mode"), mode);
-
-	/* line 594 - 596*/
-	glUniformMatrix4fv(location("view"), 1, GL_FALSE, view);
-	glUniform2f(location("resolution"), parameters.screenWidth, parameters.screenHeight);
-
-	/* line 598 - */
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
-	glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
-	glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
-	/* line - 604 */
-
-	glUniform3f(glGetUniformLocation(currentProgram, "LightCenter"), LightCenter.x, LightCenter.y, LightCenter.z);
-
-	/* line 608 -  */
-	glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-	/* line - 619 */
-
-	/* line 621 - */
-	// Render geometry
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glDisableVertexAttribArray(vertexPositionLocation);
-
-
-	/* line 628 */
-	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-}
-
-void RenderShadowMap()
-{
-	/*glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_GREATER);*/
-
-	// We don't use bias in the shader, but instead we draw back faces, 
-	// which are already separated from the front faces by a small distance 
-	// (if your geometry is made this way)
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
-
-	glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
-	// glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glUseProgram(depthProgram);
-
-	//glm::vec3 cameraPos = glm::vec3(0.0, 3.0, -3);
-	//glm::vec3 cameraPos = glm::vec3(0.0, 3.0, 6);
-		
-	glm::mat4 model(1.0f);
-	glm::mat4 view(1.0f);
-	glm::mat4 proj(1.0f);
-	glm::mat4 MVP(1.0f);
-
-	//view = glm::lookAt(cameraPos, glm::vec3(LightCenter.x, cameraPos.y, LightCenter.z), glm::vec3(0, 1, 0));
-	
-	//float w = 14.35;
-	float w = 20.0f;
-	proj = glm::ortho<float>(-w, w, -w, w, -1000, 2000);
-	//proj = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);
-
-	//glm::mat4 proj_depth = glm::perspective(glm::radians(45.0), 1.0, 0.0008, 1000.0);//glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-	//view = glm::lookAt(LightCenter, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-	view = glm::lookAt(LightCenter, LightCenter + glm::vec3(0.0, -0.15, -1.0), glm::vec3(0, 1, 0));
-	//view_depth = glm::lookAt(LightCenter, glm::vec3(10, 0, 33 + roty), glm::vec3(0, 1, 0));
-	
-	//view = view_depth;
-	
-	/*
-	*	Draw the Floor
-	*/
-
-	// Why does floor not display?
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0, 0, 0));
-	model = glm::scale(model, glm::vec3(50, 1, 90));
-	MVP = proj * view * model;
-	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &model[0][0]);
-	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
-	glVertexAttribPointer(glGetAttribLocation(depthProgram, "position"), 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
-	
-	/*
-	*	Draw the Teapot
-	*/
-
-	glm::vec3 teapotPosition = glm::vec3(0, 0, 0);// +LightCenter;
-	//glm::vec3 teapotPosition = glm::vec3(0, 0, -8);
-	//glm::vec3 teapotPosition = glm::vec3(0, 0, 50);
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, teapotPosition);
-	model = glm::scale(model, glm::vec3(1, 1, 1) * 5.0f);
-	//model = glm::rotate(model, glm::radians(15.0f), glm::vec3(1, 0, 0) );
-
-	MVP = proj * view * model;
-
-	glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
-
-	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-	glVertexAttribPointer(glGetAttribLocation(depthProgram, "position"), 3, GL_FLOAT, false, 0, 0);
-	glEnableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
-	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
-
-	glDisableVertexAttribArray(glGetAttribLocation(depthProgram, "position"));
-
-	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
-	glUseProgram(NULL);
-
-	
-}
-
-void DebugRender()
-{
-	glUseProgram(debugProgram);
-	
-	//GLuint tex = rttTexture;
-	GLuint tex = depthTexture;
-
-	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 100000);
-	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
-
-	// Set textures
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex);
-
-	//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
-
-	//float sum = 0;
-	//for (int i = 0; i < 512 * 512; ++i)
-	//{
-	//	sum += pixels[i];
-	//}
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-
-	glUniform1i(glGetUniformLocation(debugProgram, "tex"), 0);
-	glUniform2f(glGetUniformLocation(debugProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
-	
-	GLuint vertexPositionLocation = 0;
-	/* line 645 */
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	// Blit pass
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(vertexPositionLocation);
-	glBindBuffer(GL_ARRAY_BUFFER, NULL);
-
-}
-
-void BiltRender()
-{
-	//FBO_2_PPM_file(512, 512);
-	GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
-
-	glUseProgram(blitProgram);
-	glDisable(GL_BLEND);
-
-	GLuint tex = rttTexture;
-
-	/* line 633 */
-	// Set textures
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glUniform1i(glGetUniformLocation(blitProgram, "tex"), 0);
-	/* line 638 */
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glUniform2f(glGetUniformLocation(blitProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
-
-	/* line 645 */
-	// Blit pass
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	
-	glEnableVertexAttribArray(vertexPositionLocation);
-	glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
-	
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	
-	return;
-}
-
-void draw() {
-	/* line 555 - */
-	parameters_time = std::clock();
-	glEnable(GL_DEPTH_TEST);
-	glClearColor(0, 0, 0, 0);
-
-	// Note: the viewport is automatically set up to cover the entire Canvas.
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	computeMatricesFromInputs();
-	//RenderScene();
-	//RenderShadowMap();
-	//RenderSceneGeometryWithShadowMap();
-	
-	t16.RenderShadowMap16(depthBuffer, depthProgram);
-	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
-	t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix());
-	
-	//BiltRender();
-	//DebugRender();
-
-	//std::cout << t16.indices.size() << std::endl;	
-	
-	/*if (ymode == 0) {
-		RenderSceneGeometry();
-	}
-	else if (ymode == 1) {
-		RenderScene();
-		BiltRender();
-	}*/
-
-	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
-	glBindTexture(GL_TEXTURE_2D, NULL);
-	glBindVertexArray(NULL);
-	glUseProgram(NULL);
-
-
-	frame++;
-	time_of_glut = glutGet(GLUT_ELAPSED_TIME);
-	if (time_of_glut - timebase > 1000) {
-		fps = frame / ((double)(time_of_glut - timebase) / 1000.0);
-		execTime = 1.0 / fps * 1000;
-		timebase = time_of_glut;
-		frame = 0;
-		if (spin_mirror) {
-			if(spin_mode_toggle)
-				++demo_speed.mode_counter;
-			if (demo_speed.mode_counter > 1) {
-				mode = (mode + 1) % 3;
-				demo_speed.mode_counter = 0;
-			}
-		}
-	}
-}
-
+// Display Function
 void display(void) {
+	
 	if (spin_mirror) {
 		roty += 0.005 / demo_speed.speed;
 		rotz += 0.008 / demo_speed.speed;
@@ -1150,6 +243,7 @@ void display(void) {
 	}
 
 	draw();
+
 	if (mode == 1)
 		printf("\r 8 edges: %.lfFPS (%.2lf ms/frame)", fps, execTime);
 	else if (mode == 2)
@@ -1159,102 +253,81 @@ void display(void) {
 	glFinish();
 }
 
-void reshape(int width, int height) {
+// Main Render Calls
+void draw() 
+{
+	/* line 555 - */
+	parameters_time = std::clock();
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0, 0, 0, 0);
+
+	// Note: the viewport is automatically set up to cover the entire Canvas.
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	computeMatricesFromInputs();
+	//RenderScene();
+
+
+	//BiltRender();
+	//DebugRender();
+
+	//std::cout << t16.indices.size() << std::endl;	
+
+	if (ymode == 0) {
+		RenderShadowMap();
+		RenderSceneGeometryWithShadowMap();
+	}
+	else if (ymode == 1) {
+		t16.RenderShadowMap16(depthBuffer, depthProgram);
+		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix());
+	}
+
+	/*if (ymode == 0) {
+	RenderSceneGeometry();
+	}
+	else if (ymode == 1) {
+	RenderScene();
+	BiltRender();
+	}*/
+
+
+	// Clean up
+	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
+	glBindTexture(GL_TEXTURE_2D, NULL);
+	glBindVertexArray(NULL);
+	glUseProgram(NULL);
+
+	updateFrameCount();
+}
+
+// Counting FPS
+void updateFrameCount()
+{
+	frame++;
+	time_of_glut = glutGet(GLUT_ELAPSED_TIME);
+	if (time_of_glut - timebase > 1000) {
+		fps = frame / ((double)(time_of_glut - timebase) / 1000.0);
+		execTime = 1.0 / fps * 1000;
+		timebase = time_of_glut;
+		frame = 0;
+		if (spin_mirror) {
+			if (spin_mode_toggle)
+				++demo_speed.mode_counter;
+			if (demo_speed.mode_counter > 1) {
+				mode = (mode + 1) % 3;
+				demo_speed.mode_counter = 0;
+			}
+		}
+	}
+}
+
+void reshape(int width, int height) 
+{
 	parameters.screenWidth = width;
 	parameters.screenHeight = height;
 	glViewport(0, 0, width, height);
 }
 
-void keyboard(unsigned char key, int uni_name, int y) {
-	switch (key) {
-	case 27: {	/* ESC */ exit(0); break; }
-	case 'w': {rotz += ROT_STEP; break; }
-	case 's': {rotz -= ROT_STEP; break; }
-	case 'a': {roty -= ROT_STEP; break; }
-	case 'd': {roty += ROT_STEP; break; }
-	case 't': {if (height < 15) { height += HEIGHT_WIDTH_STEP; }break; }
-	case 'g': {if (height > 1) { height -= HEIGHT_WIDTH_STEP; }break; }
-	case 'f': {if (width > 1) { width -= HEIGHT_WIDTH_STEP; }break; }
-	case 'h': {if (width < 15) { width += HEIGHT_WIDTH_STEP; }break; }
-	case 'j': {if (lightIntensity > 0.1) { lightIntensity -= LIGHT_INTENSITY_STEP; }
-			  else { lightIntensity /= 2; } break; }
-	case 'k': {if (lightIntensity < 9.5) { lightIntensity += LIGHT_INTENSITY_STEP; }break; }
-	case 'u': {if (roughness > 0.03) { roughness -= ROUGHNESS_STEP; }break;	}
-	case 'i': {if (roughness < 9.97) { roughness += ROUGHNESS_STEP; }break;	}
-	case 'z': {twoSided = !twoSided;	break; }
-	case 'q': {spin_mirror = !spin_mirror; break; }
-	case 'e': {roty = 0.0; rotz = 0.0; height = 8.0; width = 8.0; break; }
-	//case 'm': {mode = (mode + 1) % 3; break; }
-	case 'o': {if (demo_speed.speed < 10) { ++demo_speed.speed; }break; }
-	case 'p': {if (demo_speed.speed > 1) { --demo_speed.speed; }break; }
-	case '[': {spin_mode_toggle = !spin_mode_toggle; break; }
-	case ']': {spin_hw_toggle = !spin_hw_toggle; break; }
-	
-	case '.': {
-		std::cout << cameraPitch << std::endl; 
-		cameraPitch += 1; break; 
-	}
-	case '/': {
-		std::cout << cameraPitch << std::endl;
-		cameraPitch -= 1; break; 
-	}
-	case ';': {
-		std::cout << cameraYaw << std::endl;
-		cameraYaw += 1; break;
-	}
-	case ',': {
-		std::cout << cameraYaw << std::endl;
-		cameraYaw -= 1; break;
-	}
-
-	//case 'c': {
-	//	LightCenter.x += 1;
-	//}
-	//case 'v': {
-	//	LightCenter.x -= 1;
-	//}
-	//case 'b': {
-	//	LightCenter.y += 1;
-	//}
-	//case 'n': {
-	//	LightCenter.y -= 1;
-	//}
-	//case 'm': {
-	//	LightCenter.z += 1;
-	//}
-	//case ',': {
-	//	LightCenter.z -= 1;
-	//}
-
-	case 'x': {
-		ymode++;
-		ymode = ymode % 2;
-		break;
-	}
-	
-	case '1': {dsColor.dcolor[0] = dsColor.dcolor[1] = dsColor.dcolor[2] = 1; break; }
-	case '2': {dsColor.dcolor[0] = 0; break; }
-	case '3': {dsColor.dcolor[1] = 0; break; }
-	case '4': {dsColor.dcolor[2] = 0; break; }
-	case '5': {dsColor.scolor[0] = dsColor.scolor[1] = dsColor.scolor[2] = 1; break; }
-	case '6': {dsColor.scolor[0] = 0; break; }
-	case '7': {dsColor.scolor[1] = 0; break; }
-	case '8': {dsColor.scolor[2] = 0; break; }
-	case '9': {break; }
-	case '0': {dsColor = { { 1,1,1 },{ 1,1,1 } }; break; }
-
-	case '\\':
-	{
-		screenshot_ppm_RGB("output.ppm", 512, 512, p);
-		break;
-	}
-
-	default: {break; }
-	}
+void idle(void) 
+{
+	glutPostRedisplay(); 
 }
-void mouseWheel(int wheel, int direction, int uni_name, int y) {
-	if (direction > 0)	eyez += 1.0;
-	else	eyez -= 1.0;
-}
-void idle(void) { glutPostRedisplay(); }
-
