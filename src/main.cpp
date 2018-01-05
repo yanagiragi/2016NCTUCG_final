@@ -237,7 +237,9 @@ void computeMatricesFromInputs() {
 
 	// glfwGetTime is called only once, the first time this function is called
 	//static double lastTime = glfwGetTime();
-	position = glm::vec3(0, 3, eyez);
+	//position = glm::vec3(0, 3, eyez);
+	position = glm::vec3(14,6,4);
+
 	// Compute time difference between current and last frame
 	double currentTime = time_of_glut;
 	float deltaTime = float(currentTime - timebase);
@@ -248,14 +250,17 @@ void computeMatricesFromInputs() {
 
 	// Reset mouse position for next frame
 	// glfwSetCursorPos(window, 1024/2, 768/2);
-	// glutWarpPointer(512 / 2, 512 / 2);
+	glutWarpPointer(512 / 2, 512 / 2);
 
 	// Compute new orientation
 	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
 	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
 
-	horizontalAngle = 0.0199888;
-	verticalAngle = 6.45002;
+	//horizontalAngle = 0.0199888;
+	//verticalAngle = 6.45002;
+	//eyez = -25;
+
+	
 		
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
@@ -521,8 +526,11 @@ void init(void) {
 
 	// For Tutorial16
 	t16 = tutorial16();
-	t16.loadOBJ("models/room_thickwalls2.obj", t16.vertices, t16.uvs, t16.normals);
-
+	//t16.loadOBJ("models/room_thickwalls.obj", t16.vertices, t16.uvs, t16.normals);
+	t16.loadOBJ("models/new.obj", t16.vertices, t16.uvs, t16.normals);
+	
+	t16.Init();
+	computeMatricesFromInputs();
 	
 	glGenBuffers(1, &quad_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
@@ -595,6 +603,12 @@ void RenderSceneGeometryWithShadowMap()
 
 	glActiveTexture(0);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 	glUniform1i(glGetUniformLocation(currentProgram, "shadowMap"), depthTexture);
 
 	glUniform1f(glGetUniformLocation(currentProgram, "bias"), shadowBias);
@@ -635,7 +649,7 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	//glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
 
 	/*
 	*	Draw Another Teapot
@@ -650,7 +664,7 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	//glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
+	glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
 
 	/*
 	*	Draw the Light Rect
@@ -687,7 +701,7 @@ void RenderSceneGeometryWithShadowMap()
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 	glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(vertexPositionLocation);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(vertexPositionLocation);
 	glDisable(GL_BLEND);
@@ -1075,17 +1089,19 @@ void draw() {
 
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+	computeMatricesFromInputs();
 	//RenderScene();
-	RenderShadowMap();
-	//t16.RenderShadowMap16(depthBuffer, depthProgram);
+	//RenderShadowMap();
+	//RenderSceneGeometryWithShadowMap();
+	
+	t16.RenderShadowMap16(depthBuffer, depthProgram);
+	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
+	t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix());
 	
 	//BiltRender();
 	//DebugRender();
 
-	//screenshot_ppm_DepthPow("output.ppm", 512, 512, pixels, depthTexture, 1);
-
-	RenderSceneGeometryWithShadowMap();
+	//std::cout << t16.indices.size() << std::endl;	
 	
 	/*if (ymode == 0) {
 		RenderSceneGeometry();

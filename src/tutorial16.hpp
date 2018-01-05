@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <map>
-
+#include <iostream>
 #include "../include/GL/glew.h"
 #include "../include/GL/freeglut.h"
 #include "../include/glm/glm.hpp"
@@ -32,6 +32,12 @@ class tutorial16
 	std::vector<glm::vec3> indexed_vertices;
 	std::vector<glm::vec2> indexed_uvs;
 	std::vector<glm::vec3> indexed_normals;
+
+	GLuint vertexbuffer;
+	GLuint uvbuffer;
+	GLuint normalbuffer;
+	// Generate a buffer for the indices as well
+	GLuint elementbuffer;
 
 	// Constructor
 	tutorial16() {}
@@ -84,9 +90,10 @@ class tutorial16
 				unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 				int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
 				if (matches != 9) {
-					printf("File can't be read by our simple parser :-( Try exporting with other options\n");
-					fclose(file);
-					return false;
+						printf("File can't be read by our simple parser :-( Try exporting with other options\n");
+						fclose(file);
+						return false;
+					
 				}
 				vertexIndices.push_back(vertexIndex[0]);
 				vertexIndices.push_back(vertexIndex[1]);
@@ -177,11 +184,7 @@ class tutorial16
 		glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
 		glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 		//glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-		//glViewport(0, 0, 512, 512);
-
-		//glEnable(GL_CULL_FACE);
-		//glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
-
+		glViewport(0, 0, 512, 512);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(depthProgram);
@@ -195,30 +198,6 @@ class tutorial16
 		/*glm::vec3 lightPos(5, 20, 20);
 		glm::mat4 depthProjectionMatrix = glm::perspective<float>(45.0f, 1.0f, 2.0f, 50.0f);
 		glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));*/
-
-		indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
-
-
-		GLuint vertexbuffer;
-		glGenBuffers(1, &vertexbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
-
-		GLuint uvbuffer;
-		glGenBuffers(1, &uvbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-		glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
-
-		GLuint normalbuffer;
-		glGenBuffers(1, &normalbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-		glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
-
-		// Generate a buffer for the indices as well
-		GLuint elementbuffer;
-		glGenBuffers(1, &elementbuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
 
 		glm::mat4 depthModelMatrix = glm::mat4(1.0);
 		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
@@ -250,53 +229,176 @@ class tutorial16
 			(void*)0           // element array buffer offset
 		);
 
-		//glm::vec3 Camera_Pos;
-		//Camera_Pos[0] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::cos(glm::radians(cameraYaw));
-		//Camera_Pos[1] = cameraDistance * glm::cos(glm::radians(cameraPitch));
-		//Camera_Pos[2] = cameraDistance * glm::sin(glm::radians(cameraPitch)) * glm::sin(glm::radians(cameraYaw));
-
-		//glm::vec3 cameraPos = glm::vec3(0.0, 8.0, 36);
-
-		//glm::mat4 model(1.0f);
-		//model = glm::translate(model, LightCenter);
-		//model = glm::rotate(model, roty, glm::vec3(0, 1, 0));
-		//model = glm::rotate(model, rotz, glm::vec3(0, 0, 1));
-		//model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
-
-		//glm::mat4 view = glm::lookAt(cameraPos, cameraPos + (LightCenter - cameraPos), glm::vec3(0, 1, 0));
-		//
-		//glm::mat4 proj = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
-
-		///*glm::mat4 proj = glm::perspective(glm::radians(45.0), 1.0, 0.0001, 1000.0);*/
-
-		//glm::mat4 MVP = proj * view * model;
-
-		//glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
-
-		//GLuint vertexPositionLocation = glGetAttribLocation(depthProgram, "position");	
-
-		//glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-		//glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-		//glEnableVertexAttribArray(vertexPositionLocation);
-
-		////glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		//model = glm::mat4(1.0f);
-		//model = glm::translate(model, glm::vec3(0, 0, 25));
-
-		//MVP = proj * view * model;
-
-		//glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
-
-		//glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-		//glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
-		//glEnableVertexAttribArray(vertexPositionLocation);
-		//glDrawArrays(GL_TRIANGLES, 0, teapot.position.size() / 3);
-
-		//glDisableVertexAttribArray(vertexPositionLocation);
-
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 		glUseProgram(NULL);
+	}
+
+	void Init()
+	{
+		std::cout << "!!!" << std::endl;
+
+		indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+
+		glGenBuffers(1, &vertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+
+		glGenBuffers(1, &uvbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+
+		glGenBuffers(1, &normalbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
+
+		glGenBuffers(1, &elementbuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+	}
+
+	void RenderWithShadowMap16(GLuint depthTexture, GLuint depthProgram, glm::mat4 v, glm::mat4 p)
+	{
+		// Create and compile our GLSL program from the shaders
+		GLuint quad_programID = depthProgram;
+		GLuint programID = depthProgram;
+
+		// Render to the screen
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, 512, 512); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
+
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Use our shader
+		glUseProgram(depthProgram);
+
+		// Compute the MVP matrix from keyboard and mouse input
+		glm::mat4 ProjectionMatrix = p;
+		glm::mat4 ViewMatrix = v;
+		//glm::mat4 ViewMatrix = glm::lookAt(glm::vec3(14,6,4), glm::vec3(0,1,0), glm::vec3(0,1,0));
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+		glm::mat4 biasMatrix(
+			0.5, 0.0, 0.0, 0.0,
+			0.0, 0.5, 0.0, 0.0,
+			0.0, 0.0, 0.5, 0.0,
+			0.5, 0.5, 0.5, 1.0
+		);
+		glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
+
+		// Compute the MVP matrix from the light's point of view
+		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+		glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		glm::mat4 depthModelMatrix = glm::mat4(1.0);
+		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+		glm::mat4 depthBiasMVP = biasMatrix*depthMVP;
+
+		bool newway = false;
+		if (newway) {
+			GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
+			GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
+			GLuint dProjectionMatrixID = glGetUniformLocation(programID, "proj_depth");
+			GLuint dViewMatrixID = glGetUniformLocation(programID, "view_depth");
+			GLuint ShadowMapID = glGetUniformLocation(programID, "shadowMap");
+
+			// Get a handle for our "LightPosition" uniform
+			GLuint lightInvDirID = glGetUniformLocation(programID, "LightInvDirection_worldspace");
+			
+			glUniformMatrix4fv(glGetUniformLocation(depthProgram, "DepthBiasMVP"), 1, GL_FALSE, &depthBiasMVP[0][0]);
+			glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+			glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+			glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+			glUniform3f(glGetUniformLocation(depthProgram, "Ccolor"), 1, 0, 0);
+			glUniform3f(lightInvDirID, lightInvDir.x, lightInvDir.y, lightInvDir.z);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, depthTexture);
+			glUniform1i(ShadowMapID, 0);
+		}
+		else
+		{
+			GLuint ProjectionMatrixID = glGetUniformLocation(programID, "proj");
+			GLuint ViewMatrixID = glGetUniformLocation(programID, "view");
+			GLuint ModelMatrixID = glGetUniformLocation(programID, "model");
+			//GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
+			//GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
+			GLuint dProjectionMatrixID = glGetUniformLocation(programID, "proj_depth");
+			GLuint dViewMatrixID = glGetUniformLocation(programID, "view_depth");
+			GLuint ShadowMapID = glGetUniformLocation(programID, "shadowMap");
+			
+			//glUniformMatrix4fv(glGetUniformLocation(depthProgram, "DepthBiasMVP"), 1, GL_FALSE, &depthBiasMVP[0][0]);
+
+			glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+			glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+			glUniformMatrix4fv(ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);
+			glUniformMatrix4fv(dViewMatrixID, 1, GL_FALSE, &depthViewMatrix[0][0]);
+			glUniformMatrix4fv(dProjectionMatrixID, 1, GL_FALSE, &depthProjectionMatrix[0][0]);
+			//glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+			//glUniform1f(glGetUniformLocation(depthProgram, "bias"), 0);
+			glUniform3f(glGetUniformLocation(depthProgram, "Ccolor"), 1, 0, 0);
+
+			//glUniform3f(lightInvDirID, lightInvDir.x, lightInvDir.y, lightInvDir.z);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, depthTexture);
+			glUniform1i(ShadowMapID, 0);
+		}		
+
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glVertexAttribPointer(
+			0,                  // attribute
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+		//// 2nd attribute buffer : UVs
+		//glEnableVertexAttribArray(1);
+		//glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		//glVertexAttribPointer(
+		//	1,                                // attribute
+		//	2,                                // size
+		//	GL_FLOAT,                         // type
+		//	GL_FALSE,                         // normalized?
+		//	0,                                // stride
+		//	(void*)0                          // array buffer offset
+		//);
+
+		//// 3rd attribute buffer : normals
+		//glEnableVertexAttribArray(2);
+		//glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		//glVertexAttribPointer(
+		//	2,                                // attribute
+		//	3,                                // size
+		//	GL_FLOAT,                         // type
+		//	GL_FALSE,                         // normalized?
+		//	0,                                // stride
+		//	(void*)0                          // array buffer offset
+		//);
+
+		// Index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+		// Draw the triangles !
+		glDrawElements(
+			GL_TRIANGLES,      // mode
+			indices.size(),    // count
+			GL_UNSIGNED_SHORT, // type
+			(void*)0           // element array buffer offset
+		);
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+
 	}
 };
 #endif // !T16

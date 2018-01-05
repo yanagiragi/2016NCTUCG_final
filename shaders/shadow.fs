@@ -1,7 +1,8 @@
 #version 440
 
-uniform vec3 color;
+uniform vec3 Ccolor;
 uniform sampler2DShadow shadowMap;
+//uniform sampler2D shadowMap;
 uniform float bias;
 
 out vec4 outColor;
@@ -64,8 +65,7 @@ void main()
 	}*/
 
 	float visibility=1.0;
-	
-	
+	float bias = 0.008;
 
 	for (int i=0; i<4; i++)
 	{
@@ -81,16 +81,25 @@ void main()
 		visibility -= 0.2 * ( 1.0 - texture( shadowMap, uv ));
 	}
 
-	outColor = vec4(color , 1.0) * visibility;
-	vec2 UVxy = ShadowCoord.xy;
-	vec3 uv = vec3(
-		UVxy.x,
-		UVxy.y,
-		(ShadowCoord.z-bias)/ShadowCoord.w
-	);
+	outColor = vec4(Ccolor , 1.0) * visibility;
+	
+	//vec2 UVxy = ShadowCoord.xy;
+	//vec3 uv = vec3(
+	//	(1- UVxy.x) / 2.0,
+	//	(1- UVxy.y) / 2.0,
+	//	(1 - (ShadowCoord.z-bias)/ShadowCoord.w) / 2.0
+	//);
 
-	float d  = 1.0 - texture( shadowMap, vec3(ShadowCoord.xy , uv));
-	outColor = vec4(d, d, d , 1.0);
-	//outColor = vec4(uv , 1.0);
+	//float d  = 1.0 - texture( shadowMap, vec3(ShadowCoord.xy , uv));
+
+	//d  = 1 - ShadowCoord.z;
+	//d /= 2.0;
+	//outColor = vec4(d, d, d , 1.0);
+	
+	///*if(d > 0.5){
+	//	outColor = vec4(1, 0, 0, 1.0);
+	//}*/
+	//outColor = vec4(0, 0, uv.z , 1.0);
 	//outColor = vec4(ShadowCoord);
+	//outColor = vec4(color, 1.0);
 }

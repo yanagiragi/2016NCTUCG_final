@@ -1,10 +1,12 @@
 #version 440
 
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 uniform mat4 proj_depth;
 uniform mat4 view_depth;
+uniform mat4 DepthBiasMVP;
 
 layout(location = 0) in vec3 position;
 
@@ -18,5 +20,7 @@ void main()
 {
 	gl_Position = proj * view * model * vec4(position, 1.0);
 	//gl_Position = proj_depth * view_depth * model * vec4(position, 1.0);
-	ShadowCoord = biasMatrix *  proj_depth * view_depth * model * vec4(position, 1.0);
+	//gl_Position = biasMatrix *  proj_depth * view_depth * model * vec4(position, 1.0);
+	ShadowCoord = biasMatrix * proj_depth * view_depth * model * vec4(position, 1.0);
+	//ShadowCoord = DepthBiasMVP * vec4(position, 1.0);
 }
