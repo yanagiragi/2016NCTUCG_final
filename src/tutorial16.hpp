@@ -375,6 +375,63 @@ class tutorial16
 
 	}
 
+	void RenderLightPosition(GLuint debugProgram, GLuint lightRectBuffer, glm::mat4 V, glm::mat4 P)
+	{
+		GLuint currentProgram = debugProgram;
+		glUseProgram(currentProgram);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+		glDisable(GL_CULL_FACE);
+
+		GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
+
+		glm::mat4 view = V;
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &view[0][0]);
+
+		glm::mat4 proj = P;
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+
+		
+		/*
+		*	Draw the Light Rect
+		*/
+		glm::mat4 model(1.0f);
+		model = glm::mat4(1.0f);
+		// Light Center = vec3(0, 6, 32);
+		model = glm::translate(model, LightCenter);
+
+
+		/*
+		vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
+		vec3 rotation_z(vec3 v, float a){return vec3(v.x*cos(a) - v.y*sin(a), v.x*sin(a) + v.y*cos(a), v.z);}
+		vec3 rotation_yz(vec3 v, float ay, float az){return rotation_z(rotation_y(v, ay), az);}
+		*/
+
+		/*
+		glm::vec3 v = glm::vec3(0, 1, 0);
+		v = glm::vec3(v.x*cos(roty) + v.z*sin(roty), v.y, -v.x*sin(roty) + v.z*cos(roty));
+		glm::vec3 rotAxisAfterYRotated = glm::vec3(v.x*cos(roty) - v.y*sin(roty), v.x*sin(roty) + v.y*cos(roty), v.z);
+		model = glm::rotate(model, -roty * 2.0f * 3.14f, v);
+
+		v = glm::vec3(0, 0, 1);
+		v = glm::vec3(v.x*cos(rotz) - v.y*sin(rotz), v.x*sin(rotz) + v.y*cos(rotz), v.z);
+		*/
+
+		model = glm::rotate(model, -roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+		model = glm::rotate(model, -rotz * 2.0f * 3.14f, glm::vec3(0, 0, 1));
+		model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
+
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+		glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 0.0, 0.0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
+		glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+		glEnableVertexAttribArray(vertexPositionLocation);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glDisableVertexAttribArray(vertexPositionLocation);
+		glDisable(GL_BLEND);
+	}
+
 	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos )
 	{
 		GLuint currentProgram = bgfxProgram;
@@ -395,7 +452,7 @@ class tutorial16
 		glm::mat4 ViewMatrix = v;
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0));
-		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 0.5f);
+		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
 
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;

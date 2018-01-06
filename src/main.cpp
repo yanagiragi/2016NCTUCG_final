@@ -298,6 +298,7 @@ void draw()
 	else if (ymode == 3) {
 		//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
 		computeMatricesFromInputs();
+		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), glm::vec3(0, 10, eyez));
 	}
 
