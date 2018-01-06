@@ -2,6 +2,8 @@
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "Input.hpp"
 
+glm::vec3 cameraEyePos;
+
 glm::mat4 getViewMatrix() {
 	return ViewMatrix;
 }
@@ -12,9 +14,10 @@ glm::mat4 getProjectionMatrix() {
 void computeMatricesFromInputs() {
 
 	//position = glm::vec3(0, 3, eyez); // For Original Render Scene
-	position = glm::vec3(0, 6, eyez); // For Original Render Scene (Adjusted)
+	//position = glm::vec3(0, 6, eyez); // For Original Render Scene (Adjusted)
 	//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
-	//position = glm::vec3(0, 10, eyez); // For debug bgfx
+	position = glm::vec3(0, 10, eyez); // For debug bgfx
+	cameraEyePos = position;
 	//position = glm::vec3(14,6,4);
 
 	// Compute time difference between current and last frame
@@ -36,9 +39,10 @@ void computeMatricesFromInputs() {
 	//verticalAngle = -0.099;
 	//eyez = 12;
 
-	/*horizontalAngle = 3.118886;
-	verticalAngle = -0.019;
-	eyez = 29;*/
+	// For bgfx
+	horizontalAngle = -0.0129214;
+	//verticalAngle = -0.402145;
+	eyez = -19;
 
 	//eyez = 51;
 	

@@ -36,6 +36,7 @@ class tutorial16
 	struct _parameters parameters;*/
 	bool twoSided = false;
 	int mode = 0;
+	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
 	glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
 
 	std::vector<glm::vec3> vertices;
@@ -395,10 +396,8 @@ class tutorial16
 		*	Draw the Light Rect
 		*/
 		glm::mat4 model(1.0f);
-		model = glm::mat4(1.0f);
 		// Light Center = vec3(0, 6, 32);
 		model = glm::translate(model, LightCenter);
-
 
 		/*
 		vec3 rotation_y(vec3 v, float a){return vec3(v.x*cos(a) + v.z*sin(a), v.y, -v.x*sin(a) + v.z*cos(a));}
@@ -451,8 +450,9 @@ class tutorial16
 		glm::mat4 ProjectionMatrix = p;
 		glm::mat4 ViewMatrix = v;
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
-		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0));
-		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
+		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
+		//ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
+		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
 
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;

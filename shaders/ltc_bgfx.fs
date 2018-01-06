@@ -455,7 +455,7 @@ vec4 LTC_Rect(){
 
 	vec3 pos = v_wpos;
 
-	// vec3 N = normal;
+	//vec3 N = normal;
 	vec3 N = vec3(0, 1, 0);
 	vec3 V = normalize(u_viewPosition - v_wpos);
 

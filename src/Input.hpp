@@ -73,7 +73,7 @@ namespace
 	//glm::vec3 LightCenter = glm::vec3(0, 6, 32); // For Original RenderScene
 	//glm::vec3 LightCenter = glm::vec3(0, 16, 32); // ???
 	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
-	glm::vec3 LightCenter = glm::vec3(0, 5, 4); // For bgfx debug
+	glm::vec3 LightCenter = glm::vec3(0, 14, 6); // For bgfx debug
 	
 	float newLightRect[18];
 
