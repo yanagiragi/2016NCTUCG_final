@@ -27,7 +27,7 @@ namespace
 
 	std::time_t parameters_time;
 
-	int ymode = 0; // special mode for debug
+	int ymode = 2; // special mode for debug
 
 	float eyez = 3.0;
 	//float roty = 0.23, rotz = 0.082;
@@ -70,10 +70,9 @@ namespace
 		-1.0, 0.0,  1.0
 	};
 
-	//glm::vec3 LightCenter = glm::vec3(0, 6, 32); 
+	glm::vec3 LightCenter = glm::vec3(0, 6, 32); 
 	//glm::vec3 LightCenter = glm::vec3(0, 16, 32);
-	glm::vec3 LightCenter = glm::vec3(0, 9, -11);
-	//glm::vec3 LightCenter = glm::vec3(0.5, 2, 2);
+	//glm::vec3 LightCenter = glm::vec3(0, 9, -11);
 	
 	float newLightRect[18];
 
@@ -198,7 +197,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 
 	case 'x': {
 		ymode++;
-		ymode = ymode % 2;
+		ymode = ymode % 3;
 		break;
 	}
 

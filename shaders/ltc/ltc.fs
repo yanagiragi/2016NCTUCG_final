@@ -442,10 +442,23 @@ vec4 LTC_Rect(){
 	Rect rect;
 	InitRect(rect);
 
+	Rect cubeWall;	
+	// Init Rect
+	cubeWall.dirx = vec3(1, 0, 0);
+	cubeWall.diry = vec3(0, 1, 0);
+	//cubeWall.center = vec3(LightCenter.x, LightCenter.y - 5, LightCenter.z - 8);
+	cubeWall.center = vec3(0, 6 - 5, 32 - 8);
+	cubeWall.halfx = 1;
+	cubeWall.halfy = 1;
+	vec3 cubeWallNormal = cross(cubeWall.dirx, cubeWall.diry);
+	cubeWall.plane = vec4(cubeWallNormal, -dot(cubeWallNormal, cubeWall.center)); // note: rect's normal
+
+
 	vec3 points[4];
 	InitRectPoints(rect, points);
 
 	vec4 floorPlane = vec4(0, 1, 0, 0);
+	//vec4 floorPlane = vec4(0.5, 1, 0, 0);
 
 	vec3 lcol = vec3(intensity);
 	vec3 dcol = ToLinear(dcolor);
@@ -460,6 +473,12 @@ vec4 LTC_Rect(){
 	if (hitFloor)
 	{
 		vec3 pos = ray.origin + ray.dir*distToFloor;
+
+		Ray reflectRay;
+		reflectRay.dir = normalize(LightCenter - pos);
+		reflectRay.origin = pos;
+		float distToCubeWall;
+		bool hitCubeWall = RayRectIntersect(reflectRay, cubeWall, distToCubeWall);
 
 		vec3 N = floorPlane.xyz;
 		vec3 V = -ray.dir;
@@ -482,12 +501,53 @@ vec4 LTC_Rect(){
 
 		col = lcol*(scol*spec + dcol*diff);
 		col /= 2.0*pi;
-	}
 
+		if(hitCubeWall){
+			col = vec3(0.2,0.2,0.2);
+		}
+	}
+	
+	//float distToCubeWall;
+	//bool hitCubeWall = RayRectIntersect(ray, cubeWall, distToCubeWall);
+	//if (hitCubeWall)
+	//{
+	//	vec3 pos = ray.origin + ray.dir*distToFloor;
+
+	//	vec3 N = normalize(cubeWallNormal.xyz);
+	//	vec3 V = -ray.dir;
+
+	//	float theta;
+	//	theta = acos(dot(N, V));
+	//	vec2 uv = vec2(roughness, theta / (0.5*pi));
+	//	uv = uv*LUT_SCALE + LUT_BIAS;
+	//	vec4 t = texture2D(ltc_mat, uv);
+	//	mat3 Minv = mat3(		// note: transform matrix
+	//		vec3(1, 0, t.y),
+	//		vec3(0, t.z, 0),
+	//		vec3(t.w, 0, t.x)
+	//	);
+
+	//	vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
+	//	spec *= texture2D(ltc_mag, uv).w;
+		
+	//	vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
+
+	//	col = lcol*(scol*spec + dcol*diff);
+	//	col /= 2.0*pi;
+
+	//	col = vec3(0.2, 0.2, 0.2);
+	//}
+	
 	float distToRect;
 	if (RayRectIntersect(ray, rect, distToRect))		// note: make the rect shine
 		if ((distToRect < distToFloor) || !hitFloor)
 			col = lcol;
+
+	float distToCubeWall;
+	if (RayRectIntersect(ray, cubeWall, distToRect))		// note: make the rect shine
+		if ((distToRect < distToFloor))
+			col = vec3(1, 0, 0);
+
 
 	return vec4(col, 1.0);
 }

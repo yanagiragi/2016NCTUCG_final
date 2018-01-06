@@ -263,10 +263,6 @@ void draw()
 
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	computeMatricesFromInputs();
-
-	t16.lightInvDir = LightCenter;
-	t16.bias = shadowBias;
 	//RenderScene();
 
 
@@ -276,12 +272,23 @@ void draw()
 	//std::cout << t16.indices.size() << std::endl;	
 
 	if (ymode == 0) {
+		computeMatricesFromInputs();
+
 		RenderShadowMap();
 		RenderSceneGeometryWithShadowMap();
 	}
 	else if (ymode == 1) {
+		computeMatricesFromInputs();
+
+		t16.lightInvDir = LightCenter;
+		t16.bias = shadowBias;
+
 		t16.RenderShadowMap16(depthBuffer, depthProgram);
 		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix());
+	}
+	else if (ymode == 2) {
+		RenderScene();
+		BiltRender();
 	}
 
 	/*if (ymode == 0) {
