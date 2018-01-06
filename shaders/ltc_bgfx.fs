@@ -1,13 +1,12 @@
 #version 440
 
-layout(binding = 0) uniform sampler2D ltc_mat;
-layout(binding = 1) uniform sampler2D ltc_mag;
-
 in vec3 normal;
+in vec3 v_wpos;
+
 out vec4 outColor;
 
+uniform mat4 modelMatrix;
 uniform vec3 LightCenter;
-
 uniform float roughness;	// bind roughness   {label:"Roughness", default:0.25, min:0.01, max:1, step:0.001}
 uniform vec3 dcolor;		// bind dcolor      {label:"Diffuse Color",  r:1.0, g:1.0, b:1.0}
 uniform vec3 scolor;		// bind scolor      {label:"Specular Color", r:1.0, g:1.0, b:1.0}
@@ -18,9 +17,12 @@ uniform float roty;			// bind roty        {label:"Rotation Y", default: 0, min:0
 uniform float rotz;			// bind rotz        {label:"Rotation Z", default: 0, min:0, max:1, step:0.001}
 uniform bool twoSided;		// bind twoSided    {label:"Two-sided", default:false}
 uniform int mode;
-
 uniform mat4 view;
 uniform vec2 resolution;
+uniform sampler2D ltc_mat;
+uniform sampler2D ltc_mag;
+uniform vec3 u_viewPosition;
+
 
 const float LUT_SIZE = 64.0;
 const float LUT_SCALE = (LUT_SIZE - 1.0) / LUT_SIZE;
@@ -439,38 +441,11 @@ vec3 LTC_12_Evaluate(vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[12], bool tw
 //////////////////////////////////////////////////////////////
 /* Main */
 
-vec4 LTC_Rect(){
+vec4 LTC_Rect(){	
 	Rect rect;
 	InitRect(rect);
-
-	Rect cubeWall;	
-	// Init Rect
-	cubeWall.dirx = vec3(1, 0, 0);
-	cubeWall.diry = vec3(0, 1, 0);
-	//cubeWall.center = vec3(LightCenter.x, LightCenter.y - 5, LightCenter.z - 8);
-	cubeWall.center = vec3(0, 6 - 5, 32 - 8);
-	cubeWall.halfx = 1;
-	cubeWall.halfy = 1;
-	vec3 cubeWallNormal = cross(cubeWall.dirx, cubeWall.diry);
-	cubeWall.plane = vec4(cubeWallNormal, -dot(cubeWallNormal, cubeWall.center)); // note: rect's normal
-
-	Rect alterCubeWall;	
-	// Init Rect
-	alterCubeWall.dirx = cubeWall.dirx;
-	alterCubeWall.diry = cubeWall.diry;
-	alterCubeWall.center = cubeWall.center;
-	alterCubeWall.halfx = cubeWall.halfx;
-	alterCubeWall.halfy = cubeWall.halfy;
-	vec3 alterCubeWallNormal = cubeWallNormal;
-	alterCubeWallNormal.y *= -1;
-	alterCubeWall.plane = vec4(alterCubeWallNormal, -dot(alterCubeWallNormal, alterCubeWall.center)); // note: rect's normal
-
-
 	vec3 points[4];
 	InitRectPoints(rect, points);
-
-	vec4 floorPlane = vec4(0, 1, 0, 0);
-	//vec4 floorPlane = vec4(0.5, 1, 0, 0);
 
 	vec3 lcol = vec3(intensity);
 	vec3 dcol = ToLinear(dcolor);
@@ -478,107 +453,34 @@ vec4 LTC_Rect(){
 
 	vec3 col = vec3(0);
 
-	Ray ray = GenerateCameraRay();
+	vec3 pos = v_wpos;
 
-	float distToFloor;
-	bool hitFloor = RayPlaneIntersect(ray, floorPlane, distToFloor);
-	if (hitFloor)
-	{
-		vec3 pos = ray.origin + ray.dir*distToFloor;
+	// vec3 N = normal;
+	vec3 N = vec3(0, 1, 0);
+	vec3 V = normalize(u_viewPosition - v_wpos);
 
-		vec3 N = floorPlane.xyz;
-		vec3 V = -ray.dir;
-
-		float theta;
-		theta = acos(dot(N, V));
-		vec2 uv = vec2(roughness, theta / (0.5*pi));
-		uv = uv*LUT_SCALE + LUT_BIAS;
-		vec4 t = texture2D(ltc_mat, uv);
-		mat3 Minv = mat3(		// note: transform matrix
-			vec3(1, 0, t.y),
-			vec3(0, t.z, 0),
-			vec3(t.w, 0, t.x)
-		);
-
-		vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
-		spec *= texture2D(ltc_mag, uv).w;
-		
-		vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
-
-		col = lcol*(scol*spec + dcol*diff);
-		col /= 2.0*pi;
-
-		Ray reflectRay;
-		reflectRay.dir = normalize(LightCenter - pos);
-		reflectRay.origin = pos;
-		float distToCubeWall;
-		bool hitCubeWall;
-		float hitRate = 1.0;
-		for(int i = 0; i < 4; ++i){
-			reflectRay.dir = normalize(points[i] - pos);
-			bool hit = RayRectIntersect(reflectRay, cubeWall, distToCubeWall);
-			if(hit)
-				hitRate *= 0.5;
-		}
-
-		// col *= hitRate;
-		if(hitRate < 0.2){
-			col *= 0.2;
-		}
-		
-	}
+	float theta;
+	theta = acos(dot(N, V));
+	vec2 uv = vec2(roughness, theta / (0.5*pi));
+	uv = uv*LUT_SCALE + LUT_BIAS;
+	vec4 t = texture2D(ltc_mat, uv);
+	mat3 Minv = mat3(		// note: transform matrix
+		vec3(1, 0, t.y),
+		vec3(0, t.z, 0),
+		vec3(t.w, 0, t.x)
+	);
 	
-	//float distToCubeWall;
-	//bool hitCubeWall = RayRectIntersect(ray, alterCubeWall, distToCubeWall);
-	//if (hitCubeWall)
-	//{
-	//	vec3 pos = ray.origin + ray.dir*distToFloor;
-
-	//	vec3 N = normalize(cubeWallNormal.xyz);
-	//	vec3 V = -ray.dir;
-
-	//	float theta;
-	//	theta = acos(dot(N, V));
-	//	vec2 uv = vec2(roughness, theta / (0.5*pi));
-	//	uv = uv*LUT_SCALE + LUT_BIAS;
-	//	vec4 t = texture2D(ltc_mat, uv);
-	//	mat3 Minv = mat3(		// note: transform matrix
-	//		vec3(1, 0, t.y),
-	//		vec3(0, t.z, 0),
-	//		vec3(t.w, 0, t.x)
-	//	);
-
-	//	vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
-	//	spec *= texture2D(ltc_mag, uv).w;
+	vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
+	spec *= texture2D(ltc_mag, uv).w;
 		
-	//	vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
+	vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
 
-	//	col = lcol*(scol*spec + dcol*diff);
-	//	col /= 2.0*pi;
+	col = lcol*(scol*spec + dcol*diff);
+	col /= 2.0*pi;
 
-	//	//col = vec3(0.2, 0.2, 0.2);
-	//}
-	
-	float distToRect;
-	if (RayRectIntersect(ray, rect, distToRect))		// note: make the rect shine
-		if ((distToRect < distToFloor) || !hitFloor)
-			col = lcol;
-
-	float distToCubeWall;
-	if (RayRectIntersect(ray, cubeWall, distToRect))		// note: make the rect shine
-		if ((distToRect < distToFloor)|| !hitFloor)
-			col = vec3(1, 1, 1) * 0f;
-
-	//ray = GenerateCameraRay();
-	//ray.dir = LightCenter - ray.origin;
-	//ray.origin = LightCenter;	
-	//vec3 camDir = vec3(ray.dir);
-
-	//float distToAlterCubeWall;
-	//if (RayRectIntersect(ray, alterCubeWall, distToAlterCubeWall))		// note: make the rect shine
-	//	if ((distToAlterCubeWall < distToFloor)|| !hitFloor)
-	//		if(dot(alterCubeWallNormal, ray.dir) < 0)
-	//			col = vec3(0, 1, 0);
+	if(col == 0)
+		col = N;
+	//col = v_wpos;
 
 	return vec4(col, 1.0);
 }
@@ -698,10 +600,12 @@ vec4 LTC_12_Rect(){
 }
 
 void main(){
-	if(mode == 1)
-		outColor = LTC_8_Rect();
-	else if(mode == 2)
-		outColor = LTC_12_Rect();
-	else
-		outColor = LTC_Rect();
+	//if(mode == 1)
+	//	outColor = LTC_8_Rect();
+	//else if(mode == 2)
+	//	outColor = LTC_12_Rect();
+	//else
+	outColor = LTC_Rect();
+
+	//outColor = vec4(1.0, 0.0, 1.0, 1.0);
 }

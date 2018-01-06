@@ -27,6 +27,17 @@ class tutorial16
 	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
 	float bias;
 
+
+	float eyez = 3.0;
+	float roty = 0.0, rotz = 0.0;
+	float height = 8.0, width = 8.0;
+	float lightIntensity = 4.0, roughness = 0.02;
+	/*struct d_s_color dsColor = { { 1,1,1 },{ 1,1,1 } };
+	struct _parameters parameters;*/
+	bool twoSided = false;
+	int mode = 0;
+	glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
+
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
@@ -180,6 +191,8 @@ class tutorial16
 
 	void Init()
 	{
+		//parameters.screenWidth = parameters.screenHeight = 512;
+
 		indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 
 		glGenBuffers(1, &vertexbuffer);
@@ -360,6 +373,106 @@ class tutorial16
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
+	}
+
+	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos )
+	{
+		GLuint currentProgram = bgfxProgram;
+
+		glUseProgram(currentProgram);
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+		glDisable(GL_CULL_FACE);
+		
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
+		//glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
+
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
+		//glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
+
+		glm::mat4 ProjectionMatrix = p;
+		glm::mat4 ViewMatrix = v;
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
+		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0));
+		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 0.5f);
+
+
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniform3f(glGetUniformLocation(currentProgram, "LightCenter"), LightCenter.x, LightCenter.y, LightCenter.z);
+		glUniform1f(glGetUniformLocation(currentProgram, "roughness"), roughness);
+		//glUniform3f(glGetUniformLocation(currentProgram, "dcolor"), dsColor.dcolor[0], dsColor.dcolor[1], dsColor.dcolor[2]);
+		//glUniform3f(glGetUniformLocation(currentProgram, "scolor"), dsColor.scolor[0], dsColor.scolor[1], dsColor.scolor[2]);
+		glUniform3f(glGetUniformLocation(currentProgram, "dcolor"), 1,1,1);
+		glUniform3f(glGetUniformLocation(currentProgram, "scolor"), 1,1,1);
+		glUniform1f(glGetUniformLocation(currentProgram, "intensity"), lightIntensity);
+		glUniform1f(glGetUniformLocation(currentProgram, "width"), width);
+		glUniform1f(glGetUniformLocation(currentProgram, "height"), height);
+		glUniform1f(glGetUniformLocation(currentProgram, "roty"), roty);
+		glUniform1f(glGetUniformLocation(currentProgram, "rotz"), rotz);
+		glUniform1i(glGetUniformLocation(currentProgram, "twoSided"), twoSided);
+		glUniform1i(glGetUniformLocation(currentProgram, "mode"), mode);
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUniform2f(glGetUniformLocation(currentProgram, "resolution"), 512, 512);
+		
+		glUniform3f(glGetUniformLocation(currentProgram, "u_viewPosition"), cameraPos.x, cameraPos.y, cameraPos.z);
+		
+		
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glVertexAttribPointer(
+			0,                  // attribute
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+
+		// 2nd attribute buffer : UVs
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glVertexAttribPointer(
+			1,                                // attribute
+			2,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// 3rd attribute buffer : normals
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			2,                                // attribute
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+
+		// Index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+		// Draw the triangles !
+		glDrawElements(
+			GL_TRIANGLES,      // mode
+			indices.size(),    // count
+			GL_UNSIGNED_SHORT, // type
+			(void*)0           // element array buffer offset
+		);
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 	}
 };
 #endif // !T16

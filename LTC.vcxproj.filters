@@ -83,6 +83,12 @@
     <None Include="shaders\shadow.fs">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\ltc_bgfx.fs">
+      <Filter>shaders\ltc</Filter>
+    </None>
+    <None Include="shaders\ltc_bgfx.vs">
+      <Filter>shaders\ltc</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

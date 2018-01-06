@@ -134,6 +134,8 @@
     <None Include="shaders\ltc\ltc_blit.vs" />
     <None Include="shaders\GenShadowMap.fs" />
     <None Include="shaders\GenShadowMap.vs" />
+    <None Include="shaders\ltc_bgfx.fs" />
+    <None Include="shaders\ltc_bgfx.vs" />
     <None Include="shaders\shadow.fs" />
     <None Include="shaders\shadow.vs" />
     <None Include="shaders\simple.fs" />

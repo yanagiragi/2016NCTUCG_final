@@ -27,7 +27,7 @@ namespace
 
 	std::time_t parameters_time;
 
-	int ymode = 2; // special mode for debug
+	int ymode = 3; // special mode for debug
 
 	float eyez = 3.0;
 	//float roty = 0.23, rotz = 0.082;
@@ -70,9 +70,10 @@ namespace
 		-1.0, 0.0,  1.0
 	};
 
-	glm::vec3 LightCenter = glm::vec3(0, 6, 32); // For Original RenderScene
+	//glm::vec3 LightCenter = glm::vec3(0, 6, 32); // For Original RenderScene
 	//glm::vec3 LightCenter = glm::vec3(0, 16, 32); // ???
 	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
+	glm::vec3 LightCenter = glm::vec3(0, 5, 4); // For bgfx debug
 	
 	float newLightRect[18];
 
@@ -197,7 +198,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 
 	case 'x': {
 		ymode++;
-		ymode = ymode % 3;
+		ymode = ymode % 4;
 		break;
 	}
 

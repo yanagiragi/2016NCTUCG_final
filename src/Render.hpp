@@ -2,7 +2,7 @@
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "Input.hpp"
 
-GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram;
+GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram, bgfxProgram;
 GLuint rttFramebuffer, rttTexture, depthTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;

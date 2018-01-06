@@ -188,6 +188,10 @@ void Init(void)
 	GLuint shadow_fs = createShader("shaders/shadow.fs", "fragment");
 	shadowProgram = createProgram(shadow_vs, shadow_fs);
 
+	GLuint bgfx_vs = createShader("shaders/ltc_bgfx.vs", "vertex");
+	GLuint bgfx_fs = createShader("shaders/ltc_bgfx.fs", "fragment");
+	bgfxProgram = createProgram(bgfx_vs, bgfx_fs);
+
 	/* line 275 - */
 	glGenTextures(1, &ltc_mat_texture);
 	glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
@@ -288,9 +292,13 @@ void draw()
 	}
 	else if (ymode == 2) {
 		computeMatricesFromInputs();
-
 		RenderScene();
 		BiltRender();
+	}
+	else if (ymode == 3) {
+		//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
+		computeMatricesFromInputs();
+		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), glm::vec3(0, 10, eyez));
 	}
 
 	/*if (ymode == 0) {
@@ -303,7 +311,7 @@ void draw()
 
 
 	// Clean up
-	glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
+	//glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
 	glBindTexture(GL_TEXTURE_2D, NULL);
 	glBindVertexArray(NULL);
 	glUseProgram(NULL);

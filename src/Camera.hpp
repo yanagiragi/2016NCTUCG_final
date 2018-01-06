@@ -12,8 +12,9 @@ glm::mat4 getProjectionMatrix() {
 void computeMatricesFromInputs() {
 
 	//position = glm::vec3(0, 3, eyez); // For Original Render Scene
-	position = glm::vec3(0, -6, eyez); // For Original Render Scene (Adjusted)
+	position = glm::vec3(0, 6, eyez); // For Original Render Scene (Adjusted)
 	//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
+	//position = glm::vec3(0, 10, eyez); // For debug bgfx
 	//position = glm::vec3(14,6,4);
 
 	// Compute time difference between current and last frame
@@ -34,6 +35,12 @@ void computeMatricesFromInputs() {
 	//horizontalAngle = 3.1456;
 	//verticalAngle = -0.099;
 	//eyez = 12;
+
+	/*horizontalAngle = 3.118886;
+	verticalAngle = -0.019;
+	eyez = 29;*/
+
+	//eyez = 51;
 	
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
