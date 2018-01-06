@@ -348,7 +348,8 @@ void RenderScene()
 	glUniform1i(location("mode"), mode);
 
 	/* line 594 - 596*/
-	glUniformMatrix4fv(location("view"), 1, GL_FALSE, view);
+	//glUniformMatrix4fv(location("view"), 1, GL_FALSE, view);
+	glUniformMatrix4fv(location("view"), 1, GL_FALSE, &(getViewMatrix())[0][0]);
 	glUniform2f(location("resolution"), parameters.screenWidth, parameters.screenHeight);
 
 	/* line 598 - */

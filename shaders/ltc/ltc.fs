@@ -453,6 +453,17 @@ vec4 LTC_Rect(){
 	vec3 cubeWallNormal = cross(cubeWall.dirx, cubeWall.diry);
 	cubeWall.plane = vec4(cubeWallNormal, -dot(cubeWallNormal, cubeWall.center)); // note: rect's normal
 
+	Rect alterCubeWall;	
+	// Init Rect
+	alterCubeWall.dirx = cubeWall.dirx;
+	alterCubeWall.diry = cubeWall.diry;
+	alterCubeWall.center = cubeWall.center;
+	alterCubeWall.halfx = cubeWall.halfx;
+	alterCubeWall.halfy = cubeWall.halfy;
+	vec3 alterCubeWallNormal = cubeWallNormal;
+	alterCubeWallNormal.y *= -1;
+	alterCubeWall.plane = vec4(alterCubeWallNormal, -dot(alterCubeWallNormal, alterCubeWall.center)); // note: rect's normal
+
 
 	vec3 points[4];
 	InitRectPoints(rect, points);
@@ -473,12 +484,6 @@ vec4 LTC_Rect(){
 	if (hitFloor)
 	{
 		vec3 pos = ray.origin + ray.dir*distToFloor;
-
-		Ray reflectRay;
-		reflectRay.dir = normalize(LightCenter - pos);
-		reflectRay.origin = pos;
-		float distToCubeWall;
-		bool hitCubeWall = RayRectIntersect(reflectRay, cubeWall, distToCubeWall);
 
 		vec3 N = floorPlane.xyz;
 		vec3 V = -ray.dir;
@@ -502,13 +507,28 @@ vec4 LTC_Rect(){
 		col = lcol*(scol*spec + dcol*diff);
 		col /= 2.0*pi;
 
-		if(hitCubeWall){
-			col = vec3(0.2,0.2,0.2);
+		Ray reflectRay;
+		reflectRay.dir = normalize(LightCenter - pos);
+		reflectRay.origin = pos;
+		float distToCubeWall;
+		bool hitCubeWall;
+		float hitRate = 1.0;
+		for(int i = 0; i < 4; ++i){
+			reflectRay.dir = normalize(points[i] - pos);
+			bool hit = RayRectIntersect(reflectRay, cubeWall, distToCubeWall);
+			if(hit)
+				hitRate *= 0.5;
 		}
+
+		// col *= hitRate;
+		if(hitRate < 0.2){
+			col *= 0.2;
+		}
+		
 	}
 	
 	//float distToCubeWall;
-	//bool hitCubeWall = RayRectIntersect(ray, cubeWall, distToCubeWall);
+	//bool hitCubeWall = RayRectIntersect(ray, alterCubeWall, distToCubeWall);
 	//if (hitCubeWall)
 	//{
 	//	vec3 pos = ray.origin + ray.dir*distToFloor;
@@ -535,7 +555,7 @@ vec4 LTC_Rect(){
 	//	col = lcol*(scol*spec + dcol*diff);
 	//	col /= 2.0*pi;
 
-	//	col = vec3(0.2, 0.2, 0.2);
+	//	//col = vec3(0.2, 0.2, 0.2);
 	//}
 	
 	float distToRect;
@@ -545,9 +565,19 @@ vec4 LTC_Rect(){
 
 	float distToCubeWall;
 	if (RayRectIntersect(ray, cubeWall, distToRect))		// note: make the rect shine
-		if ((distToRect < distToFloor))
-			col = vec3(1, 0, 0);
+		if ((distToRect < distToFloor)|| !hitFloor)
+			col = vec3(1, 1, 1) * 0f;
 
+	//ray = GenerateCameraRay();
+	//ray.dir = LightCenter - ray.origin;
+	//ray.origin = LightCenter;	
+	//vec3 camDir = vec3(ray.dir);
+
+	//float distToAlterCubeWall;
+	//if (RayRectIntersect(ray, alterCubeWall, distToAlterCubeWall))		// note: make the rect shine
+	//	if ((distToAlterCubeWall < distToFloor)|| !hitFloor)
+	//		if(dot(alterCubeWallNormal, ray.dir) < 0)
+	//			col = vec3(0, 1, 0);
 
 	return vec4(col, 1.0);
 }

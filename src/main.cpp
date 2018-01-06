@@ -287,6 +287,8 @@ void draw()
 		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix());
 	}
 	else if (ymode == 2) {
+		computeMatricesFromInputs();
+
 		RenderScene();
 		BiltRender();
 	}
