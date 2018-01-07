@@ -97,5 +97,7 @@ void main()
 
 	vec4 col2 = texture2D(shadowMaskTex, pos);
 
-    gl_FragColor = vec4(col * col2);
+	vec3 FinalColor = (col * col2).xyz;
+
+    gl_FragColor = vec4(FinalColor, 1.0);
 }

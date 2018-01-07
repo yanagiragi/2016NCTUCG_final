@@ -40,9 +40,9 @@ void computeMatricesFromInputs() {
 	//eyez = 12;
 
 	// For bgfx
-	horizontalAngle = 6.28898;
-	verticalAngle = -0.1002145;
-	eyez = -19;
+	//horizontalAngle = 6.28898;
+	//verticalAngle = -0.1002145;
+	//eyez = -19;
 
 	//eyez = 51;
 	

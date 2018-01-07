@@ -312,6 +312,7 @@ void draw()
 		t16.bias = shadowBias;
 		t16.RenderShadowMap16(depthBuffer, depthProgram);
 		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), shadowMaskBuffer);
+		//t16.RenderSceneGeometryAlter(bgfxProgram, debugProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer, lightRectBuffer);
 		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer);
 		
 		//t16.RenderWithShadowMap16(depthTexture, shadowMaskProgram, getViewMatrix(), getProjectionMatrix());
@@ -333,7 +334,7 @@ void draw()
 		computeMatricesFromInputs();
 		t16.LightCenter = LightCenter;
 		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
-		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
+		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 
 	}
 

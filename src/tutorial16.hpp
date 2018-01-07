@@ -442,17 +442,24 @@ class tutorial16
 		glDisable(GL_BLEND);
 	}
 
+	//void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint debugProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer, GLuint lightRectBuffer)
 	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer)
 	{
+
+		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		/*
+		*	Draw Light Rect
+		*/
+		// RenderLightPosition(debugProgram, lightRectBuffer, v, p);
+
+		/*
+		*	Draw Scene
+		*/
 		GLuint currentProgram = bgfxProgram;
 
 		glUseProgram(currentProgram);
-		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
-		//glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//glDisable(GL_BLEND);
-		//glDisable(GL_CULL_FACE);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);

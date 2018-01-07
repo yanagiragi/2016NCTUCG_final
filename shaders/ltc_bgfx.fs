@@ -455,8 +455,8 @@ vec4 LTC_Rect(){
 
 	vec3 pos = v_wpos;
 
-	//vec3 N = normal;
-	vec3 N = vec3(0, 1, 0);
+	vec3 N = normal;
+	//vec3 N = vec3(0, 1, 0);
 	vec3 V = normalize(u_viewPosition - v_wpos);
 
 	float theta;
@@ -478,6 +478,8 @@ vec4 LTC_Rect(){
 	col = lcol*(scol*spec + dcol*diff);
 	col /= 2.0*pi;
 
+	//if(normal.x == 0 && normal.y == 1 && normal.z == 0)
+	//col = N;
 	
 	return vec4(col, 1.0);
 }

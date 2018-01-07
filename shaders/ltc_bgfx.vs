@@ -29,6 +29,12 @@ out vec3 v_wpos;
 void main() {
 	gl_Position = MVP * vec4(position, 1.0);
 	
+	//vec3 tmpnormal = a_normal * 2.0 - 1.0;
+ //   //normal = normalize((model * vec4(tmpnormal.xyz, 0.0)).xyz);
+	//mat3 normalMatrix = mat3(transpose(inverse(view * model)));
+	//normal = normalize(normalMatrix  * tmpnormal.xyz);
+	//normal = normalize(normalMatrix  * a_normal );
+
 	vec3 tmpnormal = a_normal * 2.0 - 1.0;
     normal = normalize((model * vec4(tmpnormal.xyz, 0.0)).xyz);
 	
