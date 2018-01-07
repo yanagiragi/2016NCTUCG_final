@@ -2,12 +2,12 @@
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "Input.hpp"
 
-GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram, bgfxProgram;
-GLuint rttFramebuffer, rttTexture, depthTexture;
+GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram, bgfxProgram, shadowMaskProgram;
+GLuint rttFramebuffer, rttTexture, depthTexture, shadowMaskTexture;
 int rttFramebuffer_width, rttFramebuffer_height;
 //int depthFramebuffer_width, depthFramebuffer_height;
 GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer;
+GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer, shadowMaskBuffer;
 
 GLuint location(const GLchar* u)
 {

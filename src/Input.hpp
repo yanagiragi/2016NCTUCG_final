@@ -2,7 +2,7 @@
 #define _INPUT_HPP
 
 #include "tutorial16.hpp"
-
+#include "Utils.hpp"
 #include "../include/GL/glew.h"
 
 #define ROT_STEP 0.01
@@ -27,7 +27,7 @@ namespace
 
 	std::time_t parameters_time;
 
-	int ymode = 3; // special mode for debug
+	int ymode = 0; // special mode for debug
 
 	float eyez = 3.0;
 	//float roty = 0.23, rotz = 0.082;
@@ -49,7 +49,7 @@ namespace
 	float cameraPitch, cameraYaw, cameraDistance;
 	GLubyte *p;
 
-	GLfloat pixels[512 * 512];
+	GLfloat pixels[512 * 512 * 3];
 
 
 	float lightRect[] = {
@@ -105,7 +105,7 @@ namespace
 	GLuint quad_vertexbuffer;
 
 	double xpos, ypos;
-	float shadowBias = 0.000100001;
+	float shadowBias = 0.001100001;
 	
 	// Initial position : on +Z
 	glm::vec3 position = glm::vec3(0, 3, eyez);
@@ -225,7 +225,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 			<< "\n Light Center = (" << LightCenter.x << ", " << LightCenter.y << ", " << LightCenter.z << ")"
 			<< "\n========================================\n" << std::endl;
 
-		//screenshot_ppm_RGB("output.ppm", 512, 512, p);
+		Utils::screenshot_ppm_RGB("output.ppm", 512, 512, p);
 		break;
 	}
 

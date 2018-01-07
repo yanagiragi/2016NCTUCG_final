@@ -97,6 +97,30 @@ namespace Utils{
 		fclose(f);
 	}
 
+	void screenshot_ppm_RGB_File(const char *filename, unsigned int width, unsigned int height, GLfloat *pixels, GLuint tex) {
+		size_t i, j, k, cur;
+		const size_t format_nchannels = 3;
+		FILE *f = fopen(filename, "w");
+		fprintf(f, "P3\n%d\n%d\n%d\n", width, height, 255);
+		//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+		glGetTextureImage(tex, 0, GL_RGB, GL_FLOAT, sizeof(GLfloat) * 3 * width * height, pixels);
+		for (i = 0; i < height; i++) {
+			for (j = 0; j < width; j++) {
+				cur = format_nchannels * ((height - i - 1) * width + j);
+				float p = (pixels)[cur];
+				int pInt = p * 255.0;
+				float p1 = (pixels)[cur + 1];
+				int pInt1 = p1 * 255.0;
+				float p2 = (pixels)[cur + 2];
+				int pInt2 = p2 * 255.0;
+				fprintf(f, "%3d %3d %3d ", p, p1, p2);
+				
+			}
+			fprintf(f, "\n");
+		}
+		fclose(f);
+	}
+
 };
 
 #endif // !_UTILS_HPP

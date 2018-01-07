@@ -165,6 +165,20 @@ void Init(void)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
+	
+
+	/*
+	*	Create ShadowMaskBuffer
+	*/
+	glGenFramebuffers(1, &shadowMaskBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMaskBuffer);
+
+	glGenTextures(1, &shadowMaskTexture);
+	glBindTexture(GL_TEXTURE_2D, shadowMaskTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL); // Note: use GL_RGBA32F instead of GL_RGBA
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadowMaskTexture, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	glBindTexture(GL_TEXTURE_2D, NULL);
 
 	
 	/* line 239 - 256*/
@@ -191,6 +205,10 @@ void Init(void)
 	GLuint bgfx_vs = createShader("shaders/ltc_bgfx.vs", "vertex");
 	GLuint bgfx_fs = createShader("shaders/ltc_bgfx.fs", "fragment");
 	bgfxProgram = createProgram(bgfx_vs, bgfx_fs);
+
+	GLuint shadowMask_vs = createShader("shaders/shadowMask.vs", "vertex");
+	GLuint shadowMask_fs = createShader("shaders/shadowMask.fs", "fragment");
+	shadowMaskProgram = createProgram(shadowMask_vs, shadowMask_fs);
 
 	/* line 275 - */
 	glGenTextures(1, &ltc_mat_texture);
@@ -275,20 +293,30 @@ void draw()
 
 	//std::cout << t16.indices.size() << std::endl;	
 
-	if (ymode == 0) {
+	if (ymode == 1) {
 		computeMatricesFromInputs();
 
 		RenderShadowMap();
 		RenderSceneGeometryWithShadowMap();
+		
 	}
-	else if (ymode == 1) {
+	else if (ymode == 0) {
 		computeMatricesFromInputs();
 
+		t16.LightCenter = LightCenter;
 		t16.lightInvDir = LightCenter;
 		t16.bias = shadowBias;
-
 		t16.RenderShadowMap16(depthBuffer, depthProgram);
-		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix());
+		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), shadowMaskBuffer);
+		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer);
+		
+		//t16.RenderWithShadowMap16(depthTexture, shadowMaskProgram, getViewMatrix(), getProjectionMatrix());
+		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
+		//rttTexture = shadowMaskTexture;
+		BiltRender();
+		//Utils::screenshot_ppm_RGB_File("output.ppm", 512, 512, pixels, rttTexture);
+		//Utils::screenshot_ppm_RGB("output.ppm", 512, 512, p);
+		//t16.BlendShadowMask(shadowMaskProgram, buffer, rttTexture, shadowMaskTexture);
 	}
 	else if (ymode == 2) {
 		computeMatricesFromInputs();
@@ -300,7 +328,7 @@ void draw()
 		computeMatricesFromInputs();
 		t16.LightCenter = LightCenter;
 		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
-		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos);
+		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
 	}
 
 	/*if (ymode == 0) {

@@ -237,6 +237,9 @@ class tutorial16
 		glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));*/
 
 		glm::mat4 depthModelMatrix = glm::mat4(1.0);
+		depthModelMatrix = glm::translate(depthModelMatrix, glm::vec3(0, 5.0f, 0.0f));
+		depthModelMatrix = glm::scale(depthModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
+
 		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 
 		glUniformMatrix4fv(glGetUniformLocation(depthProgram, "MVP"), 1, GL_FALSE, &depthMVP[0][0]);
@@ -268,12 +271,12 @@ class tutorial16
 		glUseProgram(NULL);
 	}
 		
-	void RenderWithShadowMap16(GLuint depthTexture, GLuint shadowMappingProgram, glm::mat4 v, glm::mat4 p)
+	void RenderWithShadowMap16(GLuint depthTexture, GLuint shadowMappingProgram, glm::mat4 v, glm::mat4 p, GLuint rttFramebuffer)
 	{
 		GLuint currentProgram = shadowMappingProgram;
 
 		// Render to the screen
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
 		glViewport(0, 0, 512, 512);
 
 		glEnable(GL_CULL_FACE);
@@ -285,12 +288,19 @@ class tutorial16
 		// Use our shader
 		glUseProgram(currentProgram);
 
+		//glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
+
 		// Compute the MVP matrix from keyboard and mouse input
 		glm::mat4 ProjectionMatrix = p;
 		glm::mat4 ViewMatrix = v;
-		glm::mat4 ModelMatrix = glm::mat4(1.0);
+		/*glm::mat4 ModelMatrix = glm::mat4(1.0);
 
-		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 0.5f);
+		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 0.5f);*/
+
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
+		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
+		//ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
+		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
@@ -315,7 +325,7 @@ class tutorial16
 		glUniformMatrix4fv(ProjectionMatrixID, 1, GL_FALSE, &ProjectionMatrix[0][0]);
 		glUniformMatrix4fv(dViewMatrixID, 1, GL_FALSE, &depthViewMatrix[0][0]);
 		glUniformMatrix4fv(dProjectionMatrixID, 1, GL_FALSE, &depthProjectionMatrix[0][0]);
-		glUniform3f(debugColorID, 1, 0, 0);
+		glUniform3f(debugColorID, 1, 1, 1);
 		glUniform3f(lightInvDirID, lightInvDir.x, lightInvDir.y, lightInvDir.z);
 		glUniform1f(biasID, bias);
 
@@ -374,6 +384,7 @@ class tutorial16
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
 	void RenderLightPosition(GLuint debugProgram, GLuint lightRectBuffer, glm::mat4 V, glm::mat4 P)
@@ -431,13 +442,13 @@ class tutorial16
 		glDisable(GL_BLEND);
 	}
 
-	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos )
+	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer )
 	{
 		GLuint currentProgram = bgfxProgram;
 
 		glUseProgram(currentProgram);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-		glDisable(GL_CULL_FACE);
+		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+		//glDisable(GL_CULL_FACE);
 		
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
@@ -530,6 +541,53 @@ class tutorial16
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
+
+
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
+
+	void BlendShadowMask(GLuint shadowMaskProgram, GLuint buffer, GLuint rttTexture, GLuint ShadowMaskTexture)
+	{
+		GLuint currentProgram = shadowMaskProgram;		
+
+		glUseProgram(currentProgram);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glDisable(GL_BLEND);
+
+		GLuint tex = rttTexture;
+
+		/* line 633 */
+		// Set textures
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, rttTexture);
+		glUniform1i(glGetUniformLocation(currentProgram, "MainTex"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ShadowMaskTexture);
+		glUniform1i(glGetUniformLocation(currentProgram, "shadowMaskTex"), 1);
+
+		/* line 638 */
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glUniform2f(glGetUniformLocation(currentProgram, "resolution"), 512, 512);
+
+		/* line 645 */
+		// Blit pass
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		
+		GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
+
+		glEnableVertexAttribArray(vertexPositionLocation);
+		glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glDisableVertexAttribArray(vertexPositionLocation);
+
 	}
 };
 #endif // !T16
