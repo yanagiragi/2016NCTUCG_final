@@ -442,27 +442,30 @@ class tutorial16
 		glDisable(GL_BLEND);
 	}
 
-	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer )
+	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer)
 	{
 		GLuint currentProgram = bgfxProgram;
 
 		glUseProgram(currentProgram);
 		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+		//glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//glDisable(GL_BLEND);
 		//glDisable(GL_CULL_FACE);
 		
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
-		//glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
+		glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
 
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
-		//glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
+		glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
 
 		glm::mat4 ProjectionMatrix = p;
 		glm::mat4 ViewMatrix = v;
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
-		//ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
 		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
 
 
@@ -541,7 +544,6 @@ class tutorial16
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
-
 
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}

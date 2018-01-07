@@ -27,7 +27,7 @@ namespace
 
 	std::time_t parameters_time;
 
-	int ymode = 0; // special mode for debug
+	int ymode = 3; // special mode for debug
 
 	float eyez = 3.0;
 	//float roty = 0.23, rotz = 0.082;
@@ -199,6 +199,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case 'x': {
 		ymode++;
 		ymode = ymode % 4;
+		std::cout << "\nNow YMode = " << ymode << std::endl;
 		break;
 	}
 

@@ -478,10 +478,7 @@ vec4 LTC_Rect(){
 	col = lcol*(scol*spec + dcol*diff);
 	col /= 2.0*pi;
 
-	if(col == 0)
-		col = N;
-	//col = v_wpos;
-
+	
 	return vec4(col, 1.0);
 }
 

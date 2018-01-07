@@ -128,12 +128,13 @@ void Init(void)
 	glBindTexture(GL_TEXTURE_2D, rttTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL); // Note: use GL_RGBA32F instead of GL_RGBA
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rttTexture, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, NULL);
 
 	/*
 	*	Generate Depth Map
@@ -303,6 +304,9 @@ void draw()
 	else if (ymode == 0) {
 		computeMatricesFromInputs();
 
+		//RenderScene();
+		//BiltRender();
+
 		t16.LightCenter = LightCenter;
 		t16.lightInvDir = LightCenter;
 		t16.bias = shadowBias;
@@ -313,10 +317,11 @@ void draw()
 		//t16.RenderWithShadowMap16(depthTexture, shadowMaskProgram, getViewMatrix(), getProjectionMatrix());
 		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 		//rttTexture = shadowMaskTexture;
-		BiltRender();
+		//BiltRender();
 		//Utils::screenshot_ppm_RGB_File("output.ppm", 512, 512, pixels, rttTexture);
 		//Utils::screenshot_ppm_RGB("output.ppm", 512, 512, p);
-		//t16.BlendShadowMask(shadowMaskProgram, buffer, rttTexture, shadowMaskTexture);
+		t16.BlendShadowMask(shadowMaskProgram, buffer, rttTexture, shadowMaskTexture);
+		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 	}
 	else if (ymode == 2) {
 		computeMatricesFromInputs();
@@ -327,8 +332,9 @@ void draw()
 		//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
 		computeMatricesFromInputs();
 		t16.LightCenter = LightCenter;
-		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
+		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
+
 	}
 
 	/*if (ymode == 0) {
