@@ -34,7 +34,7 @@ namespace Configs
 
 	int ymode = 0; // special mode for debug
 
-	float eyez = 3.0;
+	float eyez = -23;
 	float roty = 0.0, rotz = 0.0;
 	float height = 8.0, width = 8.0;
 	float lightIntensity = 4.0, roughness = 0.02;
@@ -58,9 +58,9 @@ namespace Configs
 												 // Initial position : on +Z
 	glm::vec3 cameraEyePos = glm::vec3(0, 3, eyez);
 	// Initial horizontal angle : toward -Z
-	float horizontalAngle = 3.14f;
+	float horizontalAngle = 6.27463;
 	// Initial vertical angle : none
-	float verticalAngle = 0.0f;
+	float verticalAngle = -0.0704005;
 	// Initial Field of View
 	float initialFoV = 45.0f;
 	glm::mat4 ViewMatrix;

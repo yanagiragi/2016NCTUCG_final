@@ -84,9 +84,10 @@ void keyboard(unsigned char key, int uni_name, int y) {
 		LightCenter.z -= 1; break;
 	}
 	case ',': {
-		eyez = -46;
+		eyez = -23;
 		horizontalAngle = 6.27463;
 		verticalAngle = -0.0704005;
+		shadowBias = 0.001100001;
 		break;
 	}
 
@@ -128,8 +129,8 @@ void keyboard(unsigned char key, int uni_name, int y) {
 }
 
 void mouseWheel(int wheel, int direction, int uni_name, int y) {
-	using namespace Configs;
+	/*using namespace Configs;
 	if (direction > 0)	eyez += 1.0;
-	else	eyez -= 1.0;
+	else	eyez -= 1.0;*/
 }
 #endif

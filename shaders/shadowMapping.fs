@@ -73,7 +73,7 @@ void main()
 
 	float visibility=1.0;
 
-	for (int i=0; i<4; i++)
+	for (int i=0; i < 4; i++)
 	{
 		int index = i;
 		
@@ -98,4 +98,5 @@ void main()
 		visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5);
 
 	outColor = vec4(color , 1.0);
+
 }

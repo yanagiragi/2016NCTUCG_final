@@ -29,28 +29,23 @@ void computeMatricesFromInputs() {
 	glutWarpPointer(512 / 2, 512 / 2);
 
 	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
-	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
+	if (horizontalAngle > 6.089 && horizontalAngle < 6.4208)
+	{
+		horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
+	}
+	else
+	{
+		horizontalAngle = Utils::clamp(horizontalAngle, 6.090, 6.4207);
+	}
 
-	/*horizontalAngle = 0.0199888;
-	verticalAngle = 6.45002;
-	eyez = -25;*/
-
-	//horizontalAngle = 3.1456;
-	//verticalAngle = -0.099;
-	//eyez = 12;
-
-	// For bgfx
-	//horizontalAngle = 6.28898;
-	//verticalAngle = -0.1002145;
-	//eyez = -19;
-
-	//eyez = 51;
-
-	// For Debug
-	/*horizontalAngle = 3.125;
-	verticalAngle = -0.1104;
-	eyez = 34;*/
+	if (verticalAngle > -0.302 && verticalAngle < 0.102) 
+	{
+		verticalAngle += mouseSpeed * float(512 / 2 - ypos);
+	}
+	else 
+	{
+		verticalAngle = Utils::clamp(verticalAngle, -0.301, 0.101);
+	}
 	
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(

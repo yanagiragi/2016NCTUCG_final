@@ -109,15 +109,6 @@ void main()
 	else{
 		FinalColor = (col * col2).xyz;
 	}
-
-	//if(
-	//	originalColor == vec4(1,1,1,1)
-	//)
-	//{
-	//	FinalColor = vec3(1,0,0);
-	//}
-	
-	//FinalColor = (col + col2).xyz;
-	
+		
     gl_FragColor = vec4(FinalColor, 1.0);
 }
