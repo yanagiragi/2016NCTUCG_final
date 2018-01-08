@@ -1,3 +1,6 @@
+#ifndef _CAMERA_HPP
+#define _CAMERA_HPP
+
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "Input.hpp"
@@ -5,14 +8,16 @@
 glm::vec3 cameraEyePos;
 
 glm::mat4 getViewMatrix() {
+	using namespace Configs;
 	return ViewMatrix;
 }
 glm::mat4 getProjectionMatrix() {
+	using namespace Configs;
 	return ProjectionMatrix;
 }
 
 void computeMatricesFromInputs() {
-
+	using namespace Configs;
 	//position = glm::vec3(0, 3, eyez); // For Original Render Scene
 	//position = glm::vec3(0, 6, eyez); // For Original Render Scene (Adjusted)
 	//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
@@ -47,9 +52,9 @@ void computeMatricesFromInputs() {
 	//eyez = 51;
 
 	// For Debug
-	horizontalAngle = 3.125;
+	/*horizontalAngle = 3.125;
 	verticalAngle = -0.1104;
-	eyez = 34;
+	eyez = 34;*/
 	
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
@@ -80,3 +85,5 @@ void computeMatricesFromInputs() {
 	);
 
 }
+
+#endif

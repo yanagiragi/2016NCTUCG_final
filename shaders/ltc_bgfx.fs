@@ -456,7 +456,6 @@ vec4 LTC_Rect(){
 	vec3 pos = v_wpos;
 
 	vec3 N = normal;
-	//vec3 N = vec3(0, 1, 0);
 	vec3 V = normalize(u_viewPosition - v_wpos);
 
 	float theta;
@@ -472,19 +471,12 @@ vec4 LTC_Rect(){
 	
 	vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
 	spec *= texture2D(ltc_mag, uv).w;
-	//spec *= 1;
 		
 	vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
 
 	col = lcol*(scol*spec + dcol*diff);
 	col /= 2.0*pi;
 
-	//if(normal.x == 0 && normal.y == 1 && normal.z == 0)
-	//col = V;
-	vec3 error = vec3(0,1,0) - normal;
-	//col = error;
-		
-	
 	return vec4(col, 1.0);
 }
 
@@ -609,6 +601,4 @@ void main(){
 	//	outColor = LTC_12_Rect();
 	//else
 	outColor = LTC_Rect();
-
-	//outColor = vec4(1.0, 0.0, 1.0, 1.0);
 }

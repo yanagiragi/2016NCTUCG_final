@@ -15,13 +15,18 @@
 
 #include "../include/shader.h"
 
+
+//#include "Reader.hpp"
+//#include "ObjLoader.hpp"
+
+
+//#include "Utils.hpp"
+//#include "Render.hpp"
+
 #include "data.hpp"
-#include "Reader.hpp"
-#include "ObjLoader.hpp"
+#include "Config.hpp"
 #include "Input.hpp"
 #include "Camera.hpp"
-#include "Utils.hpp"
-#include "Render.hpp"
 #include "tutorial16.hpp"
 
 void Init(void);
@@ -31,15 +36,14 @@ void updateFrameCount();
 void reshape(int width, int height);
 void idle(void);
 
-GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram, bgfxProgram, shadowMaskProgram;
-GLuint rttFramebuffer, rttTexture, depthTexture, shadowMaskTexture;
-int rttFramebuffer_width, rttFramebuffer_height;
-//int depthFramebuffer_width, depthFramebuffer_height;
-GLuint ltc_mat_texture, ltc_mag_texture;
-GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer, shadowMaskBuffer;
+std::time_t parameters_time;
+tutorial16 t16;
+//using namespace Configs;
 
 int main(int argc, char *argv[])
 {
+	using namespace Configs;
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
 	glutCreateWindow("2016CG final project 0556619_0556641 - LTC");
@@ -60,7 +64,6 @@ int main(int argc, char *argv[])
 	glutSetCursor(GLUT_CURSOR_NONE);
 	glutSpecialFunc(SpecialInput);
 
-
 	timebase = glutGet(GLUT_ELAPSED_TIME);
 	glutMainLoop();
 
@@ -69,6 +72,7 @@ int main(int argc, char *argv[])
 
 void Init(void) 
 {
+	using namespace Configs;
 	/* line 171 */
 	GLuint vertex_shader = createShader("shaders/ltc/ltc.vs", "vertex");
 	GLuint fragment_shader = createShader("shaders/ltc/ltc.fs", "fragment");
@@ -109,15 +113,6 @@ void Init(void)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
-	teapot = ObjLoader("models/teapot.obj");
-
-	glGenBuffers(1, &teapotBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, teapotBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * teapot.position.size(), &(teapot.position[0]), GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, NULL);
-
 	/* line 220 */
 	// Create Program
 	currentProgram = createProgram(vertex_shader, fragment_shader);
@@ -153,9 +148,6 @@ void Init(void)
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, rttFramebuffer_width, rttFramebuffer_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthTexture, 0);
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -249,7 +241,7 @@ void Init(void)
 	t16.loadOBJ("models/newObj.obj", t16.vertices, t16.uvs, t16.normals);
 	
 	t16.Init();
-	computeMatricesFromInputs();
+	//computeMatricesFromInputs();
 	
 	glGenBuffers(1, &quad_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
@@ -258,6 +250,8 @@ void Init(void)
 
 // Display Function
 void display(void) {
+	
+	using namespace Configs;
 	
 	if (spin_mirror) {
 		roty += 0.005 / demo_speed.speed;
@@ -286,6 +280,7 @@ void display(void) {
 // Main Render Calls
 void draw() 
 {
+	using namespace Configs;
 	/* line 555 - */
 	parameters_time = std::clock();
 	glEnable(GL_DEPTH_TEST);
@@ -333,8 +328,8 @@ void draw()
 	}
 	else if (ymode == 3) {
 		// Original One
-	/*	RenderScene();
-		BiltRender();*/
+		t16.RenderScene();
+		t16.BiltRender();
 	}
 
 	// Clean up
@@ -348,6 +343,7 @@ void draw()
 // Counting FPS
 void updateFrameCount()
 {
+	using namespace Configs;
 	frame++;
 	time_of_glut = glutGet(GLUT_ELAPSED_TIME);
 	
@@ -376,6 +372,7 @@ void updateFrameCount()
 
 void reshape(int width, int height) 
 {
+	using namespace Configs;
 	parameters.screenWidth = width;
 	parameters.screenHeight = height;
 	glViewport(0, 0, width, height);

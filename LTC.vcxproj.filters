@@ -45,6 +45,12 @@
     <ClInclude Include="src\Render.hpp">
       <Filter>原始程式檔</Filter>
     </ClInclude>
+    <ClInclude Include="src\Config.hpp">
+      <Filter>原始程式檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tutorial16.hpp">
+      <Filter>原始程式檔</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\ltc\ltc.fs">
@@ -98,9 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
-      <Filter>原始程式檔</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tutorial16.hpp">
       <Filter>原始程式檔</Filter>
     </ClCompile>
   </ItemGroup>

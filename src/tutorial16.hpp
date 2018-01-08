@@ -6,23 +6,31 @@
 #include <vector>
 #include <map>
 #include <iostream>
+
 #include "../include/GL/glew.h"
 #include "../include/GL/freeglut.h"
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 
-struct PackedVertex {
-	glm::vec3 position;
-	glm::vec2 uv;
-	glm::vec3 normal;
-	bool operator<(const PackedVertex that) const {
-		return memcmp((void*)this, (void*)&that, sizeof(PackedVertex))>0;
-	};
-};
+//#include "Camera.hpp"
+//#include "Config.hpp"
+//#include "Input.hpp"
+//using namespace Configs;
+
 
 class tutorial16
 {
 	public:
+
+	struct PackedVertex {
+		glm::vec3 position;
+		glm::vec2 uv;
+		glm::vec3 normal;
+		bool operator<(const PackedVertex that) const {
+			return memcmp((void*)this, (void*)&that, sizeof(PackedVertex))>0;
+		};
+	};
+
 
 	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
 	float bias;
@@ -38,6 +46,8 @@ class tutorial16
 	int mode = 0;
 	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
 	glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
+
+	
 
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
@@ -597,6 +607,127 @@ class tutorial16
 
 		glDisableVertexAttribArray(vertexPositionLocation);
 
+	}
+	
+	GLuint location(const GLchar* u)
+	{
+		using namespace Configs;
+		// FIXED PROGRAM
+		return glGetUniformLocation(currentProgram, u);
+	}
+
+	void RenderScene()
+	{
+		using namespace Configs;
+		// Load program into GPU
+		glUseProgram(currentProgram);
+		/* line - 566*/
+
+		glMatrixMode(GL_MODELVIEW);
+		/* line 571*/
+		glLoadIdentity();
+		glPushMatrix();
+		glTranslated(0.0, 3.0, eyez);
+		GLfloat view[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX, view);
+		glPopMatrix();
+
+		/* line 577*/
+		// Get var locations
+		GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
+
+		/* line 583 - 593 */
+		// Set values to program variables
+		//for (const GLchar* x : g_params_names) {
+		//	float value = *(g_params[x]);
+		//	GLuint loc = location(x);
+		//	glUniform1f(loc, value);
+		//}
+
+		glUniform1f(location("roty"), roty);
+		glUniform1f(location("rotz"), rotz);
+		glUniform1f(location("height"), height);
+		glUniform1f(location("width"), width);
+		glUniform1f(location("intensity"), lightIntensity);
+		glUniform1f(location("roughness"), roughness);
+
+		glUniform1i(location("twoSided"), twoSided);
+		glUniform3f(location("dcolor"), dsColor.dcolor[0], dsColor.dcolor[1], dsColor.dcolor[2]);
+		glUniform3f(location("scolor"), dsColor.scolor[0], dsColor.scolor[1], dsColor.scolor[2]);
+		glUniform1i(location("mode"), mode);
+
+		/* line 594 - 596*/
+		//glUniformMatrix4fv(location("view"), 1, GL_FALSE, view);
+		glUniformMatrix4fv(location("view"), 1, GL_FALSE, &(getViewMatrix())[0][0]);
+		glUniform2f(location("resolution"), parameters.screenWidth, parameters.screenHeight);
+
+		/* line 598 - */
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
+		glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
+		glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
+		/* line - 604 */
+
+		glUniform3f(glGetUniformLocation(currentProgram, "LightCenter"), LightCenter.x, LightCenter.y, LightCenter.z);
+
+		/* line 608 -  */
+		glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		/* line - 619 */
+
+		/* line 621 - */
+		// Render geometry
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
+		glEnableVertexAttribArray(vertexPositionLocation);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDisableVertexAttribArray(vertexPositionLocation);
+
+
+		/* line 628 */
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
+
+	void BiltRender()
+	{
+		using namespace Configs;
+
+		//FBO_2_PPM_file(512, 512);
+		GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
+
+		glUseProgram(blitProgram);
+		glDisable(GL_BLEND);
+
+		GLuint tex = rttTexture;
+
+		/* line 633 */
+		// Set textures
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glUniform1i(glGetUniformLocation(blitProgram, "tex"), 0);
+		/* line 638 */
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glUniform2f(glGetUniformLocation(blitProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
+
+		/* line 645 */
+		// Blit pass
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+
+		glEnableVertexAttribArray(vertexPositionLocation);
+		glVertexAttribPointer(vertexPositionLocation, 2, GL_FLOAT, false, 0, 0);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		return;
 	}
 };
 #endif // !T16

@@ -470,8 +470,7 @@ vec4 LTC_Rect(){
 	InitRectPoints(rect, points);
 
 	vec4 floorPlane = vec4(0, 1, 0, 0);
-	//vec4 floorPlane = vec4(0.5, 1, 0, 0);
-
+	
 	vec3 lcol = vec3(intensity);
 	vec3 dcol = ToLinear(dcolor);
 	vec3 scol = ToLinear(scolor);
@@ -521,43 +520,12 @@ vec4 LTC_Rect(){
 				hitRate *= 0.5;
 		}
 
-		// col *= hitRate;
+		// Shadow Drop Off
 		if(hitRate < 0.2){
-			col *= 0.2;
+			 col *= 0.2;
 		}
 		
 	}
-	
-	//float distToCubeWall;
-	//bool hitCubeWall = RayRectIntersect(ray, alterCubeWall, distToCubeWall);
-	//if (hitCubeWall)
-	//{
-	//	vec3 pos = ray.origin + ray.dir*distToFloor;
-
-	//	vec3 N = normalize(cubeWallNormal.xyz);
-	//	vec3 V = -ray.dir;
-
-	//	float theta;
-	//	theta = acos(dot(N, V));
-	//	vec2 uv = vec2(roughness, theta / (0.5*pi));
-	//	uv = uv*LUT_SCALE + LUT_BIAS;
-	//	vec4 t = texture2D(ltc_mat, uv);
-	//	mat3 Minv = mat3(		// note: transform matrix
-	//		vec3(1, 0, t.y),
-	//		vec3(0, t.z, 0),
-	//		vec3(t.w, 0, t.x)
-	//	);
-
-	//	vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
-	//	spec *= texture2D(ltc_mag, uv).w;
-		
-	//	vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
-
-	//	col = lcol*(scol*spec + dcol*diff);
-	//	col /= 2.0*pi;
-
-	//	//col = vec3(0.2, 0.2, 0.2);
-	//}
 	
 	float distToRect;
 	if (RayRectIntersect(ray, rect, distToRect))		// note: make the rect shine
@@ -568,17 +536,6 @@ vec4 LTC_Rect(){
 	if (RayRectIntersect(ray, cubeWall, distToRect))		// note: make the rect shine
 		if ((distToRect < distToFloor)|| !hitFloor)
 			col = vec3(1, 1, 1) * 0f;
-
-	//ray = GenerateCameraRay();
-	//ray.dir = LightCenter - ray.origin;
-	//ray.origin = LightCenter;	
-	//vec3 camDir = vec3(ray.dir);
-
-	//float distToAlterCubeWall;
-	//if (RayRectIntersect(ray, alterCubeWall, distToAlterCubeWall))		// note: make the rect shine
-	//	if ((distToAlterCubeWall < distToFloor)|| !hitFloor)
-	//		if(dot(alterCubeWallNormal, ray.dir) < 0)
-	//			col = vec3(0, 1, 0);
 
 	return vec4(col, 1.0);
 }
