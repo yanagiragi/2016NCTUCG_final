@@ -20,18 +20,18 @@ namespace Configs
 
 	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
 
-	GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram, bgfxProgram, shadowMaskProgram;
+	GLuint ltcProgram, blitProgram, debugProgram, depthProgram, shadowProgram, bgfxProgram, shadowMaskProgram;
 	GLuint rttFramebuffer, rttTexture, depthTexture, shadowMaskTexture;
 	int rttFramebuffer_width, rttFramebuffer_height;
 	//int depthFramebuffer_width, depthFramebuffer_height;
 	GLuint ltc_mat_texture, ltc_mag_texture;
-	GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer, shadowMaskBuffer;
+	GLuint screenBuffer, depthBuffer, lightRectBuffer, teapotBuffer, shadowMaskBuffer;
 
 	glm::vec3 cameraEyePos;
 	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
 
 
-	int ymode = 3; // special mode for debug
+	int ymode = 0; // special mode for debug
 
 	float eyez = 3.0;
 	//float roty = 0.23, rotz = 0.082;
@@ -106,8 +106,6 @@ namespace Configs
 		1.0f, -1.0f, 0.0f,
 		1.0f,  1.0f, 0.0f,
 	};
-
-	GLuint quad_vertexbuffer;
 
 	double xpos, ypos;
 	float shadowBias = 0.001100001;
