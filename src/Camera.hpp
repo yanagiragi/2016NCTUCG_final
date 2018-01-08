@@ -48,9 +48,9 @@ void computeMatricesFromInputs() {
 	//eyez = 51;
 
 	// For Debug
-	//horizontalAngle = 3.125;
-	//verticalAngle = -0.1104;
-	//eyez = 34;
+	/*horizontalAngle = 3.125;
+	verticalAngle = -0.1104;
+	eyez = 34;*/
 	
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(

@@ -62,80 +62,54 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void InitShaders()
+void Init(void) 
 {
 	using namespace Configs;
-	
+	/* line 171 */
 	GLuint vertex_shader = createShader("shaders/ltc/ltc.vs", "vertex");
 	GLuint fragment_shader = createShader("shaders/ltc/ltc.fs", "fragment");
-	ltcProgram = createProgram(vertex_shader, fragment_shader);
 
-	GLuint blit_vs = createShader("shaders/ltc/ltc_blit.vs", "vertex");
-	GLuint blit_fs = createShader("shaders/ltc/ltc_blit.fs", "fragment");
-	blitProgram = createProgram(blit_vs, blit_fs);
-
-	GLuint genshadowMap_vs = createShader("shaders/GenShadowMap.vs", "vertex");
-	GLuint genshadowMap_fs = createShader("shaders/GenShadowMap.fs", "fragment");
-	depthProgram = createProgram(genshadowMap_vs, genshadowMap_fs);
-
-	GLuint debug_vs = createShader("shaders/Debug.vs", "vertex");
-	GLuint debug_fs = createShader("shaders/Debug.fs", "fragment");
-	debugProgram = createProgram(debug_vs, debug_fs);
-
-	GLuint shadowMapping_vs = createShader("shaders/shadowMapping.vs", "vertex");
-	GLuint shadowMapping_fs = createShader("shaders/shadowMapping.fs", "fragment");
-	shadowProgram = createProgram(shadowMapping_vs, shadowMapping_fs);
-
-	GLuint bgfx_vs = createShader("shaders/ltc_bgfx.vs", "vertex");
-	GLuint bgfx_fs = createShader("shaders/ltc_bgfx.fs", "fragment");
-	bgfxProgram = createProgram(bgfx_vs, bgfx_fs);
-
-	GLuint shadowMask_vs = createShader("shaders/shadowMask.vs", "vertex");
-	GLuint shadowMask_fs = createShader("shaders/shadowMask.fs", "fragment");
-	shadowMaskProgram = createProgram(shadowMask_vs, shadowMask_fs);
-
-}
-
-void InitBuffers()
-{
-	using namespace Configs;
-
+	/* line 216 */
 	// Create Vertex buffer (2 triangles)
-	glGenBuffers(1, &screenBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, screenBuffer);
-	float screen[] = {
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	float floor[] = {
 		-1.0, -1.0,
 		 1.0, -1.0,
 		-1.0,  1.0,
 		 1.0, -1.0,
 		 1.0,  1.0,
-		-1.0,  1.0
+		 -1.0,  1.0
 	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, screen, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 12, floor, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
-	// Create Light Rect buffer
+	glGenBuffers(1, &floorRectBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, floorRectBuffer);
+
+	// Static for Now
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, FloorRect, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, NULL);
+
+
 	glGenBuffers(1, &lightRectBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
-
+	
 	// Static for Now
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * 6, lightRect, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, NULL);
 
-}
+	/* line 220 */
+	// Create Program
+	currentProgram = createProgram(vertex_shader, fragment_shader);
 
-void InitScreenFrameBuffer()
-{
-	using namespace Configs;
-	
-	/*
-	*	Generate RTT Texture
-	*/
-
+	/* line 224 */
 	//glCreateFramebuffers(1,&rttFramebuffer); // just for OpenGL 4.5
 	glGenFramebuffers(1, &rttFramebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, rttFramebuffer);
@@ -165,7 +139,7 @@ void InitScreenFrameBuffer()
 
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-
+	
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -180,9 +154,10 @@ void InitScreenFrameBuffer()
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "FrameBuffer Not Ready" << std::endl;
 
+
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
-
+	
 
 	/*
 	*	Create ShadowMaskBuffer
@@ -196,6 +171,36 @@ void InitScreenFrameBuffer()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadowMaskTexture, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	glBindTexture(GL_TEXTURE_2D, NULL);
+
+	
+	/* line 239 - 256*/
+	GLuint blit_vs = createShader("shaders/ltc/ltc_blit.vs", "vertex");
+	GLuint blit_fs = createShader("shaders/ltc/ltc_blit.fs", "fragment");
+	blitProgram = createProgram(blit_vs, blit_fs);
+
+	GLuint simple_vs = createShader("shaders/simple.vs", "vertex");
+	GLuint simple_fs = createShader("shaders/simple.fs", "fragment");
+	simpleProgram = createProgram(simple_vs, simple_fs);
+
+	GLuint shadowMap_vs = createShader("shaders/GenShadowMap.vs", "vertex");
+	GLuint shadowMap_fs = createShader("shaders/GenShadowMap.fs", "fragment");
+	depthProgram = createProgram(shadowMap_vs, shadowMap_fs);
+
+	GLuint debug_vs = createShader("shaders/Debug.vs", "vertex");
+	GLuint debug_fs = createShader("shaders/Debug.fs", "fragment");
+	debugProgram = createProgram(debug_vs, debug_fs);
+
+	GLuint shadow_vs = createShader("shaders/shadow.vs", "vertex");
+	GLuint shadow_fs = createShader("shaders/shadow.fs", "fragment");
+	shadowProgram = createProgram(shadow_vs, shadow_fs);
+
+	GLuint bgfx_vs = createShader("shaders/ltc_bgfx.vs", "vertex");
+	GLuint bgfx_fs = createShader("shaders/ltc_bgfx.fs", "fragment");
+	bgfxProgram = createProgram(bgfx_vs, bgfx_fs);
+
+	GLuint shadowMask_vs = createShader("shaders/shadowMask.vs", "vertex");
+	GLuint shadowMask_fs = createShader("shaders/shadowMask.fs", "fragment");
+	shadowMaskProgram = createProgram(shadowMask_vs, shadowMask_fs);
 
 	/* line 275 - */
 	glGenTextures(1, &ltc_mat_texture);
@@ -217,21 +222,22 @@ void InitScreenFrameBuffer()
 
 	// unbind texture
 	glBindTexture(GL_TEXTURE_2D, NULL);
-}
 
-void Init(void) 
-{
-	using namespace Configs;
-	
-	InitShaders();
-	InitBuffers();
-	InitScreenFrameBuffer();	
+	float Camera_Pos_[3] = { 0, 3, 48 };
+	cameraDistance = sqrtf(Camera_Pos_[0] * Camera_Pos_[0] + Camera_Pos_[1] * Camera_Pos_[1] + Camera_Pos_[2] * Camera_Pos_[2]);
+
 
 	// For Tutorial16
 	t16 = tutorial16();
+	//t16.loadOBJ("models/room_thickwalls.obj", t16.vertices, t16.uvs, t16.normals);
 	t16.loadOBJ("models/newObj.obj", t16.vertices, t16.uvs, t16.normals);
-	t16.Init();
 	
+	t16.Init();
+	//computeMatricesFromInputs();
+	
+	glGenBuffers(1, &quad_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
 }
 
 // Display Function
@@ -277,17 +283,24 @@ void draw()
 	
 	computeMatricesFromInputs();
 
+	//t16.LightCenter = LightCenter;
+	t16.lightInvDir = LightCenter;
+	//t16.bias = shadowBias;
+
+	//t16.roty = roty;
+	//t16.rotz = rotz;
+
 	if (ymode == 0) {
 		// Draw ShadowMap Result
-		t16.RenderShadowMap16();
-		t16.RenderWithShadowMap16(shadowMaskBuffer);
+		t16.RenderShadowMap16(depthBuffer, depthProgram);
+		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), shadowMaskBuffer);
 
 		// Draw LTC Shading Result
-		//t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer);
-		t16.RenderSceneGeometryAlter(rttFramebuffer);
+		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer);
+		//t16.RenderSceneGeometryAlter(bgfxProgram, debugProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer, lightRectBuffer);
 
 		// Blend two results
-		t16.BlendShadowMask(rttTexture, shadowMaskTexture);
+		t16.BlendShadowMask(shadowMaskProgram, buffer, rttTexture, shadowMaskTexture);
 	}
 	else if (ymode == 1)
 	{
@@ -295,16 +308,15 @@ void draw()
 		//t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
 
 		// Draw Light
-		t16.RenderLightPosition(NULL);
+		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 	}
-	else if (ymode == 2) 
-	{
+	else if (ymode == 2) {
 		// Draw ShadowMap Result
-		t16.RenderShadowMap16();
-		t16.RenderWithShadowMap16(NULL);
+		t16.RenderShadowMap16(depthBuffer, depthProgram);
+		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), NULL);
 
 		// Draw Light
-		t16.RenderLightPosition(NULL);
+		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 	}
 	else if (ymode == 3) {
 		// Original One
