@@ -301,7 +301,7 @@ void draw()
 	t16.roty = roty;
 	t16.rotz = rotz;
 
-	if (ymode == 1) {
+	if (ymode == 3) {
 		computeMatricesFromInputs();
 
 		RenderShadowMap();
@@ -313,8 +313,6 @@ void draw()
 
 		//RenderScene();
 		//BiltRender();
-
-
 		
 		t16.RenderShadowMap16(depthBuffer, depthProgram);
 		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), shadowMaskBuffer);
@@ -338,7 +336,7 @@ void draw()
 		RenderScene();
 		BiltRender();
 	}
-	else if (ymode == 3) {
+	else if (ymode == 1) {
 		//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
 		computeMatricesFromInputs();
 		t16.LightCenter = LightCenter;

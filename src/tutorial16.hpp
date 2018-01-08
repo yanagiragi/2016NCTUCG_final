@@ -237,8 +237,8 @@ class tutorial16
 		glm::mat4 depthViewMatrix = glm::lookAt(lightPos, lightPos-lightInvDir, glm::vec3(0,1,0));*/
 
 		glm::mat4 depthModelMatrix = glm::mat4(1.0);
-		depthModelMatrix = glm::translate(depthModelMatrix, glm::vec3(0, 5.0f, 0.0f));
-		depthModelMatrix = glm::scale(depthModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
+		/*depthModelMatrix = glm::translate(depthModelMatrix, glm::vec3(0, 5.0f, 0.0f));
+		depthModelMatrix = glm::scale(depthModelMatrix, glm::vec3(1, 1, 1) * 1.0f);*/
 
 		glm::mat4 depthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 
@@ -298,9 +298,9 @@ class tutorial16
 		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 0.5f);*/
 
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
-		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
-		//ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
-		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
+		//ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
+		////ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 1, 20) * 1.0f);
+		//ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
