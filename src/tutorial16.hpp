@@ -261,10 +261,13 @@ public:
 	{
 		using namespace Configs;
 
-		GLuint currentProgram = shadowProgram;
-
 		// Render to the FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+
+		RenderLightPositionAlter();
+
+		GLuint currentProgram = shadowProgram;
+
 		glViewport(0, 0, parameters.screenWidth, parameters.screenHeight);
 
 		glEnable(GL_CULL_FACE);
@@ -428,6 +431,38 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
+	void RenderLightPositionAlter()
+	{
+		GLuint currentProgram = Configs::debugProgram;
+		glUseProgram(currentProgram);
+
+		GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
+
+		glm::mat4 view = getViewMatrix();
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &view[0][0]);
+
+		glm::mat4 proj = getProjectionMatrix();
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "proj"), 1, GL_FALSE, &proj[0][0]);
+
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, Configs::LightCenter);
+
+		model = glm::rotate(model, Configs::roty * 2.0f * 3.14f, glm::vec3(0, 1, 0));
+		model = glm::scale(model, glm::vec3(Configs::width * 0.5, Configs::height * 0.5, 1));
+
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
+		glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 1.0, 1.0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, Configs::lightRectBuffer);
+		glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
+		glEnableVertexAttribArray(vertexPositionLocation);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glDisableVertexAttribArray(vertexPositionLocation);
+
+		//glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
+
 	void RenderSceneGeometryAlter(GLuint FrameBuffer)
 	{
 		using namespace Configs;
@@ -438,7 +473,7 @@ public:
 		/*
 		*	Draw Light Rect
 		*/
-		//RenderLightPosition(FrameBuffer);
+		RenderLightPositionAlter();
 
 		/*
 		*	Draw Scene
