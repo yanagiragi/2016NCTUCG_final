@@ -32,10 +32,8 @@ inline void SpecialInput(int key, int x, int y)
 		shadowBias -= 0.001;
 		break;
 	case GLUT_KEY_LEFT:
-		scale += 0.1;
 		break;
 	case GLUT_KEY_RIGHT:
-		scale -= 0.1;
 		break;
 	}
 }
@@ -45,8 +43,8 @@ void keyboard(unsigned char key, int uni_name, int y) {
 
 	switch (key) {
 	case 27: {	/* ESC */ exit(0); break; }
-	case 'w': {rotz += ROT_STEP; break; }
-	case 's': {rotz -= ROT_STEP; break; }
+			 /*case 'w': {rotz += ROT_STEP; break; }
+			 case 's': {rotz -= ROT_STEP; break; }*/
 	case 'a': {roty -= ROT_STEP; break; }
 	case 'd': {roty += ROT_STEP; break; }
 	case 't': {if (height < 15) { height += HEIGHT_WIDTH_STEP; }break; }
@@ -61,35 +59,40 @@ void keyboard(unsigned char key, int uni_name, int y) {
 	case 'z': {twoSided = !twoSided;	break; }
 	case 'q': {spin_mirror = !spin_mirror; break; }
 	case 'e': {roty = 0.0; rotz = 0.0; height = 8.0; width = 8.0; break; }
-			  //case 'm': {mode = (mode + 1) % 3; break; }
+	case 'm': {mode = (mode + 1) % 3; break; }
 	case 'o': {if (demo_speed.speed < 10) { ++demo_speed.speed; }break; }
 	case 'p': {if (demo_speed.speed > 1) { --demo_speed.speed; }break; }
 	case '[': {spin_mode_toggle = !spin_mode_toggle; break; }
 	case ']': {spin_hw_toggle = !spin_hw_toggle; break; }
 
 	case 'c': {
-	LightCenter.x += 1; break;
+		LightCenter.x += 1; break;
 	}
 	case 'v': {
-	LightCenter.x -= 1; break;
+		LightCenter.x -= 1; break;
 	}
 	case 'b': {
-	LightCenter.y += 1; break;
+		LightCenter.y += 1; break;
 	}
 	case 'n': {
-	LightCenter.y -= 1; break;
+		LightCenter.y -= 1; break;
 	}
-	case 'm': {
-	LightCenter.z += 1;break;
+	case '.': {
+		LightCenter.z += 1; break;
 	}
 	case '/': {
-	LightCenter.z -= 1;
-	break;
+		LightCenter.z -= 1; break;
+	}
+	case ',': {
+		eyez = -46;
+		horizontalAngle = 6.27463;
+		verticalAngle = -0.0704005;
+		break;
 	}
 
 	case 'x': {
 		ymode++;
-		ymode = ymode % 4;
+		ymode = ymode % 3;
 		std::cout << "\nNow YMode = " << ymode << std::endl;
 		break;
 	}
@@ -113,7 +116,6 @@ void keyboard(unsigned char key, int uni_name, int y) {
 			<< "\nCamera horizontalAngle = " << horizontalAngle
 			<< "\nCamera verticalAngle = " << verticalAngle
 			<< "\nShadow Bias = " << shadowBias
-			<< "\nScale = " << scale
 			<< "\n Light Center = (" << LightCenter.x << ", " << LightCenter.y << ", " << LightCenter.z << ")"
 			<< "\n========================================\n" << std::endl;
 
