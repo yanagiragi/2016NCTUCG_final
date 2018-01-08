@@ -96,12 +96,6 @@ void main()
 		visibility * MaterialDiffuseColor * LightColor * LightPower * cosTheta +
 		// Specular : reflective highlight, like a mirror
 		visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5);
-	
-	outColor = vec4(color , 1.0);
 
-	/*if(visibility >= 0.5){
-		outColor = vec4(0, 0, 0 , 1.0);
-	}*/
-	//outColor = vec4(debugColor , 1.0) * visibility;
-	
+	outColor = vec4(color , 1.0);
 }

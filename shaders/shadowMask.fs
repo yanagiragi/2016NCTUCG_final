@@ -2,6 +2,7 @@ uniform vec2 resolution;
 
 uniform sampler2D MainTex;
 uniform sampler2D shadowMaskTex;
+uniform float Intensity;
 
 vec3 rrt_odt_fit(vec3 v)
 {
@@ -89,22 +90,34 @@ void main()
 
 	vec4 col = texture2D(MainTex, pos);
 
-	// Rescale by number of samples
-	//col /= col.w;
+	vec4 originalColor = vec4(col.x, col.y, col.z, col.w);
 
-	//col.rgb = aces_fitted(col.rgb);
-	//col.rgb = ToSRGB(col.rgb);
+	// Rescale by number of samples
+	col /= col.w;
+
+	col.rgb = aces_fitted(col.rgb);
+	col.rgb = ToSRGB(col.rgb);
 
 	vec4 col2 = texture2D(shadowMaskTex, pos);
 
 	vec3 FinalColor;
-	if(col == vec4(1,1,1,1)){
-		FinalColor = (col + col2).xyz;
-	}
+	
+	// Light Rect
+	if(originalColor == vec4(1,1,1,1)){
+		FinalColor = (originalColor + col2).xyz * Intensity;
+	}	
 	else{
 		FinalColor = (col * col2).xyz;
 	}
-	//vec3 FinalColor = (col2).xyz;
+
+	//if(
+	//	originalColor == vec4(1,1,1,1)
+	//)
+	//{
+	//	FinalColor = vec3(1,0,0);
+	//}
+	
+	//FinalColor = (col + col2).xyz;
 	
     gl_FragColor = vec4(FinalColor, 1.0);
 }

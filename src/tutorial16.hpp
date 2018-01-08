@@ -420,6 +420,7 @@ public:
 
 		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
 		glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 1.0, 1.0);
+		//glUniform1f(glGetUniformLocation(currentProgram, "Intensity"), lightIntensity);
 
 		glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 		glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -452,6 +453,7 @@ public:
 
 		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
 		glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 1.0, 1.0);
+		//glUniform1f(glGetUniformLocation(currentProgram, "Intensity"), Configs::lightIntensity);
 
 		glBindBuffer(GL_ARRAY_BUFFER, Configs::lightRectBuffer);
 		glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
@@ -512,6 +514,7 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &ViewMatrix[0][0]);
 		glUniform2f(glGetUniformLocation(currentProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
 		glUniform3f(glGetUniformLocation(currentProgram, "u_viewPosition"), cameraEyePos.x, cameraEyePos.y, cameraEyePos.z);
+
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
@@ -591,6 +594,7 @@ public:
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, ShadowMaskTexture);
 		glUniform1i(glGetUniformLocation(currentProgram, "shadowMaskTex"), 1);
+		glUniform1f(glGetUniformLocation(currentProgram, "Intensity"), lightIntensity);
 
 		/* line 638 */
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

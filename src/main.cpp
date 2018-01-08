@@ -312,7 +312,7 @@ void draw()
 		t16.RenderWithShadowMap16(NULL);
 
 		// Draw Light
-		//t16.RenderLightPosition(NULL, 0.01);
+		t16.RenderLightPosition(NULL, 0.01);
 	}
 	//else if (ymode == 3) {
 	//	// Original One
