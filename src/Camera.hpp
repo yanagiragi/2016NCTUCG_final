@@ -28,8 +28,8 @@ void computeMatricesFromInputs() {
 	glutWarpPointer(512 / 2, 512 / 2);
 
 	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
-	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
+	//horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
+	//verticalAngle += mouseSpeed * float(512 / 2 - ypos);
 
 	/*horizontalAngle = 0.0199888;
 	verticalAngle = 6.45002;
@@ -47,9 +47,9 @@ void computeMatricesFromInputs() {
 	//eyez = 51;
 
 	// For Debug
-	//horizontalAngle = -0.02;
-	//verticalAngle = -0.0850518;
-	//eyez = -22;
+	horizontalAngle = 3.125;
+	verticalAngle = -0.1104;
+	eyez = 34;
 	
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(

@@ -391,8 +391,8 @@ class tutorial16
 	{
 		GLuint currentProgram = debugProgram;
 		glUseProgram(currentProgram);
-		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
-		glDisable(GL_CULL_FACE);
+		//glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+		//glDisable(GL_CULL_FACE);
 
 		GLuint vertexPositionLocation = glGetAttribLocation(currentProgram, "position");
 
@@ -439,10 +439,10 @@ class tutorial16
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glDisableVertexAttribArray(vertexPositionLocation);
-		glDisable(GL_BLEND);
+		//glDisable(GL_BLEND);
 	}
 
-	//void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint debugProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer, GLuint lightRectBuffer)
+	//void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint *debugProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer, GLuint *lightRectBuffer)
 	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer)
 	{
 
@@ -452,7 +452,7 @@ class tutorial16
 		/*
 		*	Draw Light Rect
 		*/
-		// RenderLightPosition(debugProgram, lightRectBuffer, v, p);
+		// RenderLightPosition(*debugProgram, *lightRectBuffer, v, p);
 
 		/*
 		*	Draw Scene

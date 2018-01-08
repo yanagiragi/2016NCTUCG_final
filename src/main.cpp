@@ -31,6 +31,13 @@ void updateFrameCount();
 void reshape(int width, int height);
 void idle(void);
 
+GLuint currentProgram, blitProgram, debugProgram, depthProgram, simpleProgram, shadowProgram, bgfxProgram, shadowMaskProgram;
+GLuint rttFramebuffer, rttTexture, depthTexture, shadowMaskTexture;
+int rttFramebuffer_width, rttFramebuffer_height;
+//int depthFramebuffer_width, depthFramebuffer_height;
+GLuint ltc_mat_texture, ltc_mag_texture;
+GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer, shadowMaskBuffer;
+
 int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
@@ -303,6 +310,7 @@ void draw()
 
 		// Draw LTC Shading Result
 		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer);
+		//t16.RenderSceneGeometryAlter(bgfxProgram, debugProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer, lightRectBuffer);
 
 		// Blend two results
 		t16.BlendShadowMask(shadowMaskProgram, buffer, rttTexture, shadowMaskTexture);
@@ -310,7 +318,7 @@ void draw()
 	else if (ymode == 1)
 	{
 		// Draw LTC Shading Result with Gamma correction
-		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
+		//t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
 
 		// Draw Light
 		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
@@ -325,8 +333,8 @@ void draw()
 	}
 	else if (ymode == 3) {
 		// Original One
-		RenderScene();
-		BiltRender();
+	/*	RenderScene();
+		BiltRender();*/
 	}
 
 	// Clean up
