@@ -286,13 +286,8 @@ void draw()
 
 	// Note: the viewport is automatically set up to cover the entire Canvas.
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//RenderScene();
-
-
-	//BiltRender();
-	//DebugRender();
-
-	//std::cout << t16.indices.size() << std::endl;	
+	
+	computeMatricesFromInputs();
 
 	t16.LightCenter = LightCenter;
 	t16.lightInvDir = LightCenter;
@@ -301,61 +296,40 @@ void draw()
 	t16.roty = roty;
 	t16.rotz = rotz;
 
-	if (ymode == 3) {
-		computeMatricesFromInputs();
-
-		RenderShadowMap();
-		RenderSceneGeometryWithShadowMap();
-		
-	}
-	else if (ymode == 0) {
-		computeMatricesFromInputs();
-
-		//RenderScene();
-		//BiltRender();
-		
+	if (ymode == 0) {
+		// Draw ShadowMap Result
 		t16.RenderShadowMap16(depthBuffer, depthProgram);
 		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), shadowMaskBuffer);
-		//t16.RenderSceneGeometryAlter(bgfxProgram, debugProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer, lightRectBuffer);
+
+		// Draw LTC Shading Result
 		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer);
-		
-		//t16.RenderWithShadowMap16(depthTexture, shadowMaskProgram, getViewMatrix(), getProjectionMatrix());
-		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
-		//rttTexture = shadowMaskTexture;
-		//BiltRender();
-		//Utils::screenshot_ppm_RGB_File("output.ppm", 512, 512, pixels, rttTexture);
-		//Utils::screenshot_ppm_RGB("output.ppm", 512, 512, p);
+
+		// Blend two results
 		t16.BlendShadowMask(shadowMaskProgram, buffer, rttTexture, shadowMaskTexture);
-		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
+	}
+	else if (ymode == 1)
+	{
+		// Draw LTC Shading Result with Gamma correction
+		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
+
+		// Draw Light
+		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 	}
 	else if (ymode == 2) {
-		/*eyez = 67;
-		horizontalAngle = 6.28;
-		verticalAngle = -0.085;*/
-		computeMatricesFromInputs();
+		// Draw ShadowMap Result
+		t16.RenderShadowMap16(depthBuffer, depthProgram);
+		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), NULL);
+
+		// Draw Light
+		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
+	}
+	else if (ymode == 3) {
+		// Original One
 		RenderScene();
 		BiltRender();
 	}
-	else if (ymode == 1) {
-		//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
-		computeMatricesFromInputs();
-		t16.LightCenter = LightCenter;
-		t16.RenderSceneGeometryAlter(bgfxProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, NULL);
-		t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
-
-	}
-
-	/*if (ymode == 0) {
-	RenderSceneGeometry();
-	}
-	else if (ymode == 1) {
-	RenderScene();
-	BiltRender();
-	}*/
-
 
 	// Clean up
-	//glDisableVertexAttribArray(glGetAttribLocation(currentProgram, "position"));
 	glBindTexture(GL_TEXTURE_2D, NULL);
 	glBindVertexArray(NULL);
 	glUseProgram(NULL);

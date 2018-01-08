@@ -431,7 +431,7 @@ class tutorial16
 		model = glm::scale(model, glm::vec3(width * 0.5, height * 0.5, 1));
 
 		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &model[0][0]);
-		glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 0.0, 0.0);
+		glUniform3f(glGetUniformLocation(currentProgram, "debugColor"), 1.0, 1.0, 1.0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, lightRectBuffer);
 		glVertexAttribPointer(vertexPositionLocation, 3, GL_FLOAT, false, 0, 0);
