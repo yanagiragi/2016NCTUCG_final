@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
-	glutCreateWindow("2016CG final project 0556619_0556641 - LTC");
+	glutCreateWindow("2017CG final project 0656604_0556652 - LTC");
 	glutReshapeWindow(512, 512);
 	glewInit();
 
