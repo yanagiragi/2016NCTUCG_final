@@ -5,15 +5,11 @@
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "Input.hpp"
 
-glm::vec3 cameraEyePos;
-
 glm::mat4 getViewMatrix() {
-	using namespace Configs;
-	return ViewMatrix;
+	return Configs::ViewMatrix;
 }
 glm::mat4 getProjectionMatrix() {
-	using namespace Configs;
-	return ProjectionMatrix;
+	return Configs::ProjectionMatrix;
 }
 
 void computeMatricesFromInputs() {
@@ -33,8 +29,8 @@ void computeMatricesFromInputs() {
 	glutWarpPointer(512 / 2, 512 / 2);
 
 	// Compute new orientation
-	//horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
-	//verticalAngle += mouseSpeed * float(512 / 2 - ypos);
+	horizontalAngle += mouseSpeed * float(512 / 2 - xpos);
+	verticalAngle += mouseSpeed * float(512 / 2 - ypos);
 
 	/*horizontalAngle = 0.0199888;
 	verticalAngle = 6.45002;
@@ -81,7 +77,7 @@ void computeMatricesFromInputs() {
 	ViewMatrix = glm::lookAt(
 		cameraEyePos,				// Camera is here
 		cameraEyePos + direction,	// and looks here : at the same position, plus "direction"
-		up						// Head is up (set to 0,-1,0 to look upside-down)
+		up							// Head is up (set to 0,-1,0 to look upside-down)
 	);
 
 }

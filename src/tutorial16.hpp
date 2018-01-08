@@ -12,12 +12,6 @@
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 
-//#include "Camera.hpp"
-//#include "Config.hpp"
-//#include "Input.hpp"
-//using namespace Configs;
-
-
 class tutorial16
 {
 	public:
@@ -31,21 +25,20 @@ class tutorial16
 		};
 	};
 
-
 	glm::vec3 lightInvDir = glm::vec3(0.5f, 2, 2);
-	float bias;
+	//float bias;
 
 
-	float eyez = 3.0;
-	float roty = 0.0, rotz = 0.0;
-	float height = 8.0, width = 8.0;
-	float lightIntensity = 4.0, roughness = 0.02;
-	/*struct d_s_color dsColor = { { 1,1,1 },{ 1,1,1 } };
-	struct _parameters parameters;*/
-	bool twoSided = false;
-	int mode = 0;
+	//float eyez = 3.0;
+	//float roty = 0.0, rotz = 0.0;
+	//float height = 8.0, width = 8.0;
+	//float lightIntensity = 4.0, roughness = 0.02;
+	///*struct d_s_color dsColor = { { 1,1,1 },{ 1,1,1 } };
+	//struct _parameters parameters;*/
+	//bool twoSided = false;
+	//int mode = 0;
 	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
-	glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
+	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
 
 	
 
@@ -283,6 +276,8 @@ class tutorial16
 		
 	void RenderWithShadowMap16(GLuint depthTexture, GLuint shadowMappingProgram, glm::mat4 v, glm::mat4 p, GLuint rttFramebuffer)
 	{
+		using namespace Configs;
+
 		GLuint currentProgram = shadowMappingProgram;
 
 		// Render to the screen
@@ -399,6 +394,8 @@ class tutorial16
 
 	void RenderLightPosition(GLuint debugProgram, GLuint lightRectBuffer, glm::mat4 V, glm::mat4 P)
 	{
+		using namespace Configs;
+
 		GLuint currentProgram = debugProgram;
 		glUseProgram(currentProgram);
 		//glBindFramebuffer(GL_FRAMEBUFFER, NULL);
@@ -455,6 +452,7 @@ class tutorial16
 	//void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint *debugProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer, GLuint *lightRectBuffer)
 	void RenderSceneGeometryAlter(GLuint bgfxProgram, GLuint ltc_mat_texture, GLuint ltc_mag_texture, glm::mat4 v, glm::mat4 p, glm::vec3 cameraPos, GLuint FrameBuffer)
 	{
+		using namespace Configs;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

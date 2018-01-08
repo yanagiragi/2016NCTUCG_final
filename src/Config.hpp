@@ -27,6 +27,9 @@ namespace Configs
 	GLuint ltc_mat_texture, ltc_mag_texture;
 	GLuint buffer, depthBuffer, lightRectBuffer, teapotBuffer, floorRectBuffer, shadowMaskBuffer;
 
+	glm::vec3 cameraEyePos;
+	//glm::vec3 LightCenter = glm::vec3(0, 9, -11); // For Render t16 Shadows
+
 
 	int ymode = 3; // special mode for debug
 
@@ -49,6 +52,7 @@ namespace Configs
 	//ObjLoader teapot;
 	float cameraPitch, cameraYaw, cameraDistance;
 	GLubyte *p;
+	float bias = 0.001;
 
 	GLfloat pixels[512 * 512 * 3];
 

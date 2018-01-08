@@ -121,8 +121,6 @@
     <ClInclude Include="src\Config.hpp" />
     <ClInclude Include="src\data.hpp" />
     <ClInclude Include="src\Input.hpp" />
-    <ClInclude Include="src\ObjLoader.hpp" />
-    <ClInclude Include="src\Reader.hpp" />
     <ClInclude Include="src\Render.hpp" />
     <ClInclude Include="src\tutorial16.hpp" />
     <ClInclude Include="src\Utils.hpp" />

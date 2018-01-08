@@ -27,12 +27,6 @@
     <ClInclude Include="src\data.hpp">
       <Filter>原始程式檔</Filter>
     </ClInclude>
-    <ClInclude Include="src\ObjLoader.hpp">
-      <Filter>原始程式檔</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Reader.hpp">
-      <Filter>原始程式檔</Filter>
-    </ClInclude>
     <ClInclude Include="src\Utils.hpp">
       <Filter>原始程式檔</Filter>
     </ClInclude>

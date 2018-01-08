@@ -16,13 +16,6 @@
 #include "../include/shader.h"
 
 
-//#include "Reader.hpp"
-//#include "ObjLoader.hpp"
-
-
-//#include "Utils.hpp"
-//#include "Render.hpp"
-
 #include "data.hpp"
 #include "Config.hpp"
 #include "Input.hpp"
@@ -38,7 +31,6 @@ void idle(void);
 
 std::time_t parameters_time;
 tutorial16 t16;
-//using namespace Configs;
 
 int main(int argc, char *argv[])
 {
@@ -291,12 +283,12 @@ void draw()
 	
 	computeMatricesFromInputs();
 
-	t16.LightCenter = LightCenter;
+	//t16.LightCenter = LightCenter;
 	t16.lightInvDir = LightCenter;
-	t16.bias = shadowBias;
+	//t16.bias = shadowBias;
 
-	t16.roty = roty;
-	t16.rotz = rotz;
+	//t16.roty = roty;
+	//t16.rotz = rotz;
 
 	if (ymode == 0) {
 		// Draw ShadowMap Result
