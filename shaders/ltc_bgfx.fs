@@ -472,6 +472,7 @@ vec4 LTC_Rect(){
 	
 	vec3 spec = LTC_Evaluate(N, V, pos, Minv, points, twoSided);
 	spec *= texture2D(ltc_mag, uv).w;
+	//spec *= 1;
 		
 	vec3 diff = LTC_Evaluate(N, V, pos, mat3(1), points, twoSided);
 
@@ -479,7 +480,10 @@ vec4 LTC_Rect(){
 	col /= 2.0*pi;
 
 	//if(normal.x == 0 && normal.y == 1 && normal.z == 0)
-	//col = N;
+	//col = V;
+	vec3 error = vec3(0,1,0) - normal;
+	//col = error;
+		
 	
 	return vec4(col, 1.0);
 }

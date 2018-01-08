@@ -239,7 +239,7 @@ void Init(void)
 	// For Tutorial16
 	t16 = tutorial16();
 	//t16.loadOBJ("models/room_thickwalls.obj", t16.vertices, t16.uvs, t16.normals);
-	t16.loadOBJ("models/new.obj", t16.vertices, t16.uvs, t16.normals);
+	t16.loadOBJ("models/newObj.obj", t16.vertices, t16.uvs, t16.normals);
 	
 	t16.Init();
 	computeMatricesFromInputs();
@@ -294,6 +294,13 @@ void draw()
 
 	//std::cout << t16.indices.size() << std::endl;	
 
+	t16.LightCenter = LightCenter;
+	t16.lightInvDir = LightCenter;
+	t16.bias = shadowBias;
+
+	t16.roty = roty;
+	t16.rotz = rotz;
+
 	if (ymode == 1) {
 		computeMatricesFromInputs();
 
@@ -307,9 +314,8 @@ void draw()
 		//RenderScene();
 		//BiltRender();
 
-		t16.LightCenter = LightCenter;
-		t16.lightInvDir = LightCenter;
-		t16.bias = shadowBias;
+
+		
 		t16.RenderShadowMap16(depthBuffer, depthProgram);
 		t16.RenderWithShadowMap16(depthTexture, shadowProgram, getViewMatrix(), getProjectionMatrix(), shadowMaskBuffer);
 		//t16.RenderSceneGeometryAlter(bgfxProgram, debugProgram, ltc_mat_texture, ltc_mag_texture, getViewMatrix(), getProjectionMatrix(), cameraEyePos, rttFramebuffer, lightRectBuffer);
@@ -325,6 +331,9 @@ void draw()
 		//t16.RenderLightPosition(debugProgram, lightRectBuffer, getViewMatrix(), getProjectionMatrix());
 	}
 	else if (ymode == 2) {
+		/*eyez = 67;
+		horizontalAngle = 6.28;
+		verticalAngle = -0.085;*/
 		computeMatricesFromInputs();
 		RenderScene();
 		BiltRender();

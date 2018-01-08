@@ -16,8 +16,8 @@ void computeMatricesFromInputs() {
 	//position = glm::vec3(0, 3, eyez); // For Original Render Scene
 	//position = glm::vec3(0, 6, eyez); // For Original Render Scene (Adjusted)
 	//position = glm::vec3(0, 10, eyez); // For Render t16 Shadow
-	position = glm::vec3(0, 10, eyez); // For debug bgfx
-	cameraEyePos = position;
+	//position // For debug bgfx
+	cameraEyePos = glm::vec3(0, 10, eyez);;
 	//position = glm::vec3(14,6,4);
 
 	// Compute time difference between current and last frame
@@ -45,6 +45,11 @@ void computeMatricesFromInputs() {
 	//eyez = -19;
 
 	//eyez = 51;
+
+	// For Debug
+	//horizontalAngle = -0.02;
+	//verticalAngle = -0.0850518;
+	//eyez = -22;
 	
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
@@ -69,8 +74,8 @@ void computeMatricesFromInputs() {
 	ProjectionMatrix = glm::perspective(glm::radians(FoV), 1.0f, 0.0008f, 1000.0f);	// Camera matrix
 	
 	ViewMatrix = glm::lookAt(
-		position,				// Camera is here
-		position + direction,	// and looks here : at the same position, plus "direction"
+		cameraEyePos,				// Camera is here
+		cameraEyePos + direction,	// and looks here : at the same position, plus "direction"
 		up						// Head is up (set to 0,-1,0 to look upside-down)
 	);
 

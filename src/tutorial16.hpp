@@ -472,8 +472,8 @@ class tutorial16
 		glm::mat4 ProjectionMatrix = p;
 		glm::mat4 ViewMatrix = v;
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
-		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
-		ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
+		//ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 5.0f, 0.0f));
+		//ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, 1) * 1.0f);
 
 
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
