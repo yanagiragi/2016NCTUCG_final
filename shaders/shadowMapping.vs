@@ -13,6 +13,7 @@ layout(location = 1) in vec2 vertexUV;
 layout(location = 2) in vec3 vertexNormal_modelspace;
 
 out vec2 UV;
+out vec3 Normal_ObjectSpace;
 out vec3 Position_worldspace;
 out vec3 Normal_cameraspace;
 out vec3 EyeDirection_cameraspace;
@@ -41,6 +42,8 @@ void main()
 	Normal_cameraspace = ( view * model * vec4(vertexNormal_modelspace,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
 	// Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
 	
+	Normal_ObjectSpace = vertexNormal_modelspace;
+
 	// UV of the vertex. No special space for this one.
 	UV = vertexUV;
 }

@@ -28,6 +28,7 @@ namespace Configs
 
 	int rttFramebuffer_width, rttFramebuffer_height;
 	GLuint ltcProgram, blitProgram, debugProgram, depthProgram, shadowProgram, bgfxProgram, shadowMaskProgram;
+	GLuint bgfxShadowProgram;
 	GLuint rttFramebuffer, rttTexture, depthTexture, shadowMaskTexture;
 	GLuint ltc_mat_texture, ltc_mag_texture;
 	GLuint screenBuffer, depthBuffer, lightRectBuffer, teapotBuffer, shadowMaskBuffer;
@@ -73,6 +74,9 @@ namespace Configs
 	double xpos, ypos;
 
 	int count = 0;
+
+	float scale = 0;
+
 }
 
 #endif // !_CONFIGS_HPP

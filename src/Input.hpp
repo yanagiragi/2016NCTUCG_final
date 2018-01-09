@@ -32,8 +32,10 @@ inline void SpecialInput(int key, int x, int y)
 		shadowBias -= 0.001;
 		break;
 	case GLUT_KEY_LEFT:
+		scale += 0.01;
 		break;
 	case GLUT_KEY_RIGHT:
+		scale -= 0.01;
 		break;
 	}
 }
@@ -117,6 +119,7 @@ void keyboard(unsigned char key, int uni_name, int y) {
 			<< "\nCamera horizontalAngle = " << horizontalAngle
 			<< "\nCamera verticalAngle = " << verticalAngle
 			<< "\nShadow Bias = " << shadowBias
+			// << "\nScale = " << scale
 			<< "\n Light Center = (" << LightCenter.x << ", " << LightCenter.y << ", " << LightCenter.z << ")"
 			<< "\n========================================\n" << std::endl;
 
@@ -135,8 +138,8 @@ void keyboard(unsigned char key, int uni_name, int y) {
 }
 
 void mouseWheel(int wheel, int direction, int uni_name, int y) {
-	/*using namespace Configs;
-	if (direction > 0)	eyez += 1.0;
+	using namespace Configs;
+	/*if (direction > 0)	eyez += 1.0;
 	else	eyez -= 1.0;*/
 }
 #endif

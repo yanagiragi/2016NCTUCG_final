@@ -136,6 +136,8 @@
     <None Include="shaders\GenShadowMap.vs" />
     <None Include="shaders\ltc_bgfx.fs" />
     <None Include="shaders\ltc_bgfx.vs" />
+    <None Include="shaders\ltc_bgfx_Shadow.fs" />
+    <None Include="shaders\ltc_bgfx_Shadow.vs" />
     <None Include="shaders\shadowMapping.fs" />
     <None Include="shaders\shadowMapping.vs" />
     <None Include="shaders\shadowMask.fs" />

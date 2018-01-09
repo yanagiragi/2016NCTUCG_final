@@ -94,6 +94,10 @@ void InitShaders()
 	GLuint shadowMask_fs = createShader("shaders/shadowMask.fs", "fragment");
 	shadowMaskProgram = createProgram(shadowMask_vs, shadowMask_fs);
 
+	GLuint bgfx_s_vs = createShader("shaders/ltc_bgfx_Shadow.vs", "vertex");
+	GLuint bgfx_s_fs = createShader("shaders/ltc_bgfx_Shadow.fs", "fragment");
+	bgfxShadowProgram = createProgram(bgfx_s_vs, bgfx_s_fs);
+	
 }
 
 void InitBuffers()
@@ -175,7 +179,7 @@ void InitScreenFrameBuffer()
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, rttFramebuffer_width, rttFramebuffer_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -289,21 +293,26 @@ void draw()
 	if (ymode == 0) {
 		// Draw ShadowMap Result
 		t16.RenderShadowMap16();
-		t16.RenderWithShadowMap16(shadowMaskBuffer);
+		//t16.RenderWithShadowMap16(shadowMaskBuffer);
 
 		// Draw LTC Shading Result
-		t16.RenderSceneGeometryAlter(rttFramebuffer);
+		//t16.RenderSceneGeometryAlter(rttFramebuffer);
+		
+		// Draw LTC Shading Result With ShadowMap
+		t16.RenderSceneGeometryAlterAlter(NULL);
 
 		// Blend two results
-		t16.BlendShadowMask(rttTexture, shadowMaskTexture);
+		//t16.BlendShadowMask(rttTexture, shadowMaskTexture);
 	}
 	else if (ymode == 1)
 	{
 		// Draw LTC Shading Result without Gamma correction
 		t16.RenderSceneGeometryAlter(NULL);
 
+		//t16.BiltRender();
+
 		// Draw Light
-		t16.RenderLightPosition(NULL);
+		//t16.RenderLightPosition(NULL);
 	}
 	else if (ymode == 2)
 	{

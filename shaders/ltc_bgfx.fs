@@ -19,10 +19,28 @@ uniform bool twoSided;		// bind twoSided    {label:"Two-sided", default:false}
 uniform int mode;
 uniform mat4 view;
 uniform vec2 resolution;
-uniform sampler2D ltc_mat;
-uniform sampler2D ltc_mag;
+layout(location = 0) uniform sampler2D ltc_mat;
+layout(location = 1)  uniform sampler2D ltc_mag;
 uniform vec3 u_viewPosition;
 
+const vec2 poissonDisk[16] = vec2[]( 
+   vec2( -0.94201624, -0.39906216 ), 
+   vec2( 0.94558609, -0.76890725 ), 
+   vec2( -0.094184101, -0.92938870 ), 
+   vec2( 0.34495938, 0.29387760 ), 
+   vec2( -0.91588581, 0.45771432 ), 
+   vec2( -0.81544232, -0.87912464 ), 
+   vec2( -0.38277543, 0.27676845 ), 
+   vec2( 0.97484398, 0.75648379 ), 
+   vec2( 0.44323325, -0.97511554 ), 
+   vec2( 0.53742981, -0.47373420 ), 
+   vec2( -0.26496911, -0.41893023 ), 
+   vec2( 0.79197514, 0.19090188 ), 
+   vec2( -0.24188840, 0.99706507 ), 
+   vec2( -0.81409955, 0.91437590 ), 
+   vec2( 0.19984126, 0.78641367 ), 
+   vec2( 0.14383161, -0.14100790 ) 
+);
 
 const float LUT_SIZE = 64.0;
 const float LUT_SCALE = (LUT_SIZE - 1.0) / LUT_SIZE;
@@ -594,11 +612,69 @@ vec4 LTC_12_Rect(){
 	return vec4(col, 1.0);
 }
 
+
+vec3 rrt_odt_fit(vec3 v)
+{
+    vec3 a = v*(         v + 0.0245786) - 0.000090537;
+    vec3 b = v*(0.983729*v + 0.4329510) + 0.238081;
+    return a/b;
+}
+
+mat3 mat3_from_rows(vec3 c0, vec3 c1, vec3 c2)
+{
+    mat3 m = mat3(c0, c1, c2);
+    m = transpose(m);
+
+    return m;
+}
+
+float saturate(float v)
+{
+    return clamp(v, 0.0, 1.0);
+}
+
+vec3 saturate(vec3 v)
+{
+    return vec3(saturate(v.x), saturate(v.y), saturate(v.z));
+}
+
+vec3 aces_fitted(vec3 color)
+{
+	mat3 ACES_INPUT_MAT = mat3_from_rows(
+	    vec3( 0.59719, 0.35458, 0.04823),
+	    vec3( 0.07600, 0.90834, 0.01566),
+	    vec3( 0.02840, 0.13383, 0.83777));
+
+	mat3 ACES_OUTPUT_MAT = mat3_from_rows(
+	    vec3( 1.60475,-0.53108,-0.07367),
+	    vec3(-0.10208, 1.10813,-0.00605),
+	    vec3(-0.00327,-0.07276, 1.07602));
+
+    color = mul(ACES_INPUT_MAT, color);
+
+    // Apply RRT and ODT
+    color = rrt_odt_fit(color);
+
+    color = mul(ACES_OUTPUT_MAT, color);
+
+    // Clamp to [0, 1]
+    color = saturate(color);
+
+    return color;
+}
+
 void main(){
 	//if(mode == 1)
 	//	outColor = LTC_8_Rect();
 	//else if(mode == 2)
 	//	outColor = LTC_12_Rect();
 	//else
-	outColor = LTC_Rect();
+	vec4 col = LTC_Rect();
+
+	col /= col.w;
+
+	col.rgb = aces_fitted(col.rgb);
+	col.rgb = ToSRGB(col.rgb);
+
+	outColor = vec4(col);
 }

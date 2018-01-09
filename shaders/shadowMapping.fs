@@ -14,7 +14,7 @@ in vec3 Position_worldspace;
 in vec3 Normal_cameraspace;
 in vec3 EyeDirection_cameraspace;
 in vec3 LightDirection_cameraspace;
-
+in vec3 Normal_ObjectSpace;
 
 vec2 poissonDisk[16] = vec2[]( 
    vec2( -0.94201624, -0.39906216 ), 
@@ -96,6 +96,13 @@ void main()
 		visibility * MaterialDiffuseColor * LightColor * LightPower * cosTheta +
 		// Specular : reflective highlight, like a mirror
 		visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5);
+
+	if(visibility > 0.9)
+		visibility = 1;
+	else
+		visibility = 0;
+
+	color = vec3(visibility,visibility,visibility);	
 
 	outColor = vec4(color , 1.0);
 

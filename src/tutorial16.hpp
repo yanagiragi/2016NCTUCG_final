@@ -210,7 +210,7 @@ public:
 
 		glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 
-		glViewport(0, 0, parameters.screenWidth, parameters.screenHeight);
+		glViewport(0, 0, 1024, 1024);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -255,6 +255,8 @@ public:
 		glEnable(GL_CULL_FACE);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 		glUseProgram(NULL);
+
+		glViewport(0, 0, 512, 512);
 	}
 
 	void RenderWithShadowMap16(GLuint FrameBuffer)
@@ -572,6 +574,131 @@ public:
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 
+		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
+	}
+
+	void RenderSceneGeometryAlterAlter(GLuint FrameBuffer)
+	{
+		using namespace Configs;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		
+
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+		/*
+		*	Draw Scene
+		*/
+		GLuint currentProgram = bgfxShadowProgram;
+
+		glUseProgram(currentProgram);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ltc_mat_texture);
+		glUniform1i(glGetUniformLocation(currentProgram, "ltc_mat"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ltc_mag_texture);
+		glUniform1i(glGetUniformLocation(currentProgram, "ltc_mag"), 1);
+
+		glm::mat4 ProjectionMatrix = getProjectionMatrix();
+		glm::mat4 ViewMatrix = getViewMatrix();
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
+
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+		glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10, 10, -10, 10, -10, 20);
+		glm::mat4 depthViewMatrix = glm::lookAt(LightCenter, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+		GLuint dProjectionMatrixID = glGetUniformLocation(currentProgram, "proj_depth");
+		GLuint dViewMatrixID = glGetUniformLocation(currentProgram, "view_depth");
+		GLuint ShadowMapID = glGetUniformLocation(currentProgram, "shadowMap");
+		GLuint biasID = glGetUniformLocation(currentProgram, "bias");
+
+		glUniformMatrix4fv(dViewMatrixID, 1, GL_FALSE, &depthViewMatrix[0][0]);
+		glUniformMatrix4fv(dProjectionMatrixID, 1, GL_FALSE, &depthProjectionMatrix[0][0]);
+		glUniform1f(biasID, shadowBias);
+		
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depthTexture);
+		glUniform1i(ShadowMapID, 2);
+
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, GL_FALSE, &ModelMatrix[0][0]);
+		glUniform3f(glGetUniformLocation(currentProgram, "LightCenter"), LightCenter.x, LightCenter.y, LightCenter.z);
+		glUniform1f(glGetUniformLocation(currentProgram, "roughness"), roughness);
+		glUniform3f(glGetUniformLocation(currentProgram, "dcolor"), dsColor.dcolor[0], dsColor.dcolor[1], dsColor.dcolor[2]);
+		glUniform3f(glGetUniformLocation(currentProgram, "scolor"), dsColor.scolor[0], dsColor.scolor[1], dsColor.scolor[2]);
+		glUniform1f(glGetUniformLocation(currentProgram, "intensity"), lightIntensity);
+		glUniform1f(glGetUniformLocation(currentProgram, "width"), width);
+		glUniform1f(glGetUniformLocation(currentProgram, "height"), height);
+		glUniform1f(glGetUniformLocation(currentProgram, "roty"), roty);
+		glUniform1f(glGetUniformLocation(currentProgram, "rotz"), rotz);
+		glUniform1i(glGetUniformLocation(currentProgram, "twoSided"), twoSided);
+		glUniform1i(glGetUniformLocation(currentProgram, "mode"), mode);
+		glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUniform2f(glGetUniformLocation(currentProgram, "resolution"), parameters.screenWidth, parameters.screenHeight);
+		glUniform3f(glGetUniformLocation(currentProgram, "u_viewPosition"), cameraEyePos.x, cameraEyePos.y, cameraEyePos.z);
+
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glVertexAttribPointer(
+			0,                  // attribute
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+
+		// 2nd attribute buffer : UVs
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+		glVertexAttribPointer(
+			1,                                // attribute
+			2,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		// 3rd attribute buffer : normals
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+		glVertexAttribPointer(
+			2,                                // attribute
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+
+		// Index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+		// Draw the triangles !
+		glDrawElements(
+			GL_TRIANGLES,      // mode
+			indices.size(),    // count
+			GL_UNSIGNED_SHORT, // type
+			(void*)0           // element array buffer offset
+		);
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+		/*
+		*	Draw Light Rect
+		*/
+		RenderLightPositionAlter();
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
