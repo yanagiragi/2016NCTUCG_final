@@ -77,12 +77,6 @@
     <None Include="shaders\GenShadowMap.vs">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\shadow.vs">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="shaders\shadow.fs">
-      <Filter>shaders</Filter>
-    </None>
     <None Include="shaders\ltc_bgfx.fs">
       <Filter>shaders\ltc</Filter>
     </None>
@@ -93,6 +87,12 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\shadowMask.vs">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shadowMapping.fs">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shadowMapping.vs">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

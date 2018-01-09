@@ -260,7 +260,7 @@ public:
 	void RenderWithShadowMap16(GLuint FrameBuffer)
 	{
 		using namespace Configs;
-		glDisable(GL_CULL_FACE);
+		//glDisable(GL_CULL_FACE);
 		// Render to the FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
 
@@ -365,7 +365,7 @@ public:
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
@@ -477,6 +477,9 @@ public:
 		*/
 		RenderLightPositionAlter();
 
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		
 		/*
 		*	Draw Scene
 		*/

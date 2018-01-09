@@ -84,7 +84,7 @@ void main()
 			UVxy.y,
 			(ShadowCoord.z-bias)/ShadowCoord.w
 		);
-		visibility -= 0.2 * ( 1.0 - texture( shadowMap, uv ));
+		visibility -= 0.3 * ( 1.0 - texture( shadowMap, uv ));
 	}
 	
 	//visibility = 1.0;

@@ -120,7 +120,13 @@ void keyboard(unsigned char key, int uni_name, int y) {
 			<< "\n Light Center = (" << LightCenter.x << ", " << LightCenter.y << ", " << LightCenter.z << ")"
 			<< "\n========================================\n" << std::endl;
 
-		Utils::screenshot_ppm_RGB("output.ppm", 512, 512, p);
+		std::ostringstream stringStream;
+		stringStream << "output" << count << ".ppm";
+		std::string copyOfStr = stringStream.str();
+
+		Utils::screenshot_ppm_RGB(copyOfStr.c_str(), 512, 512, p);
+		Utils::screenshot_ppm_Depth("Shadow.ppm", 512, 512, pixels, Configs::depthTexture);
+		count++;
 		break;
 	}
 

@@ -50,7 +50,7 @@ namespace Configs
 
 	// For Utils::screenshot
 	GLubyte *p;
-	// GLfloat pixels[512 * 512 * 3];
+	GLfloat pixels[512 * 512]; // for shadow map
 
 	glm::vec3 LightCenter = glm::vec3(0, 15, 6); // For bgfx debug
 
@@ -71,6 +71,8 @@ namespace Configs
 
 	// For Mouse input
 	double xpos, ypos;
+
+	int count = 0;
 }
 
 #endif // !_CONFIGS_HPP
