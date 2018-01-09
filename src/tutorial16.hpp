@@ -201,13 +201,12 @@ public:
 	{
 		using namespace Configs;
 
+		glDisable(GL_CULL_FACE);
+
 		GLuint currentProgram = depthProgram;
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK); // Cull back-facing triangles -> draw only front-facing triangles
 
 		glBindFramebuffer(GL_FRAMEBUFFER, depthBuffer);
 
@@ -253,6 +252,7 @@ public:
 			(void*)0           // element array buffer offset
 		);
 
+		glEnable(GL_CULL_FACE);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 		glUseProgram(NULL);
 	}
@@ -260,7 +260,7 @@ public:
 	void RenderWithShadowMap16(GLuint FrameBuffer)
 	{
 		using namespace Configs;
-
+		glDisable(GL_CULL_FACE);
 		// Render to the FrameBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, FrameBuffer);
 
@@ -365,7 +365,7 @@ public:
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
-
+		glEnable(GL_CULL_FACE);
 		glBindFramebuffer(GL_FRAMEBUFFER, NULL);
 	}
 
