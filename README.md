@@ -1,8 +1,10 @@
 # Linear Transformed Cosines with Hard Shadows
 
+<hr >
+
 <img src="./shadowmapDebug\FinalResult\Better\output0.png">
 
-## Envoirments:
+## Environments:
 
 * OS: Win 10 64 bit
 
